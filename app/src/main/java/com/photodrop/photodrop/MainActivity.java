@@ -13,8 +13,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
@@ -33,19 +31,22 @@ import com.firebase.geofire.GeoLocation;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapsActivity.LocationDataTransfer {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapsActivity.LocationDataTransfer, ValueEventListener {
 
     // UI Buttons
     private FloatingActionButton fab;
     private ImageView imageView;
     private ImageButton profileButton;
+    private FloatingActionButton compassButton;
     private static final int START_CAMERA = 1000;
+    private static final int IMAGE_QUALITY = 1;
 
     // Firebase Objects
-    private Firebase firebaseRef;
     private Firebase images;
     private GeoFire geoFire;
     private static final String FIREBASE_URL = "https://photodrop-umbc.firebaseio.com/";
+    private static final String IMAGES_URL = FIREBASE_URL + "images";
+    private static final String GEOFIRE_URL = FIREBASE_URL + "drops";
 
     // Service Objects
     private LocationService.LocationServiceBinder binder;
@@ -54,7 +55,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     // The Map Fragment
     private MapsActivity mapsActivity;
-    private FloatingActionButton compassButton;
 
 
     @Override
@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
 
+        // Gets the UI elements
         fab = (FloatingActionButton) findViewById(R.id.fab);
         imageView = (ImageView) findViewById(R.id.imageView);
         profileButton = (ImageButton) findViewById(R.id.profileButton);
@@ -72,40 +73,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Gets the Map Fragment so we can call setLocation()
         mapsActivity = (MapsActivity) getSupportFragmentManager().findFragmentById(R.id.map);
 
+        // Initializes the Firebase references
         Firebase.setAndroidContext(this);
-        firebaseRef = new Firebase(FIREBASE_URL);
-        images = new Firebase(FIREBASE_URL + "images");
-        geoFire = new GeoFire(images);
-
-        firebaseRef.child("image").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-
-                // If there's no photo yet, return
-                if (snapshot.getValue() == null) {
-                    return;
-                }
-                Log.d("ME", "Decoding image");
-                // Decodes the image
-                byte[] decodedImage = Base64.decode((String) snapshot.getValue(), Base64.DEFAULT);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length);
-
-                // Sets the image
-                imageView.setImageBitmap(bitmap);
-            }
-
-            @Override
-            public void onCancelled(FirebaseError error) {
-            }
-        });
+        images = new Firebase(IMAGES_URL);
+        geoFire = new GeoFire(new Firebase(GEOFIRE_URL));
 
         // Binds the service. Calls the onServiceConnected() method below
         Intent serviceIntent = new Intent(this, LocationService.class);
         bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
     }
 
-
-    // Adds the OnClickListener
+    /**
+     * Adds the OnClickListeners
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -118,7 +98,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    // Removes the OnClickListener
+    /**
+     * Removes the OnClickListeners
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -131,6 +113,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    /**
+     * Handles the UI button clicks
+     */
     @Override
     public void onClick(View v) {
 
@@ -152,11 +137,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // Sets the maps center when the user presses the compass button
             case R.id.compassButton:
-                mapsActivity.setLocation(locationService.getUserLocation());
+                Location userLocation = locationService.getUserLocation();
+                if (userLocation != null) {
+                    Log.d("MainActivity", "User Location != null");
+                    mapsActivity.setLocation(userLocation);
+                }
                 break;
         }
     }
 
+    /**
+     * Handles the result of the cameraIntent. Fixes the images orientation, sets the image to
+     * the one in the corner, and saves the image to Firebase.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -164,8 +157,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (requestCode == START_CAMERA) {
             if (resultCode == RESULT_OK) {
                 try {
-                    Uri imageUri = data.getData();
 
+                    // Gets the image bitmap
+                    Uri imageUri = data.getData();
                     Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
 
                     // Gets the orientation of the photo
@@ -212,6 +206,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return result;
     }
 
+    /**
+     * Saves the image to Firebase
+     */
     public class SaveImage implements Runnable {
         private Bitmap bitmap;
         public SaveImage(Bitmap bitmap) {
@@ -220,9 +217,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void run() {
+
+            // Converts the image to an encoded String
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             // PNG is lossless quality but 100 ensures max quality
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_QUALITY, byteArrayOutputStream);
             bitmap.recycle();
             byte[] byteArray = byteArrayOutputStream.toByteArray();
             String imageFile = Base64.encodeToString(byteArray, Base64.DEFAULT);
@@ -232,9 +231,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             Log.d("ME", String.format("Saving image at:\nlat: %.10f\nlng: %.10f",
                     location.getLatitude(), location.getLongitude()));
-//            firebaseRef.child("images/firebase-hq" + location.getLatitude() + "," + location.getLongitude()).setValue(imageFile);
 
-            geoFire.setLocation(images.push().getKey(), new GeoLocation(location.getLatitude(), location.getLongitude()));
+            // Generates a unique hash to store the image
+            String imageKey = images.push().getKey();
+
+            // Saves the location of the drop and saves the image with the same key
+            geoFire.setLocation(imageKey, new GeoLocation(location.getLatitude(), location.getLongitude()));
+            images.child(imageKey).setValue(imageFile);
+
+            // Frees up some memory (i think lol)
+            imageFile = null;
+            imageKey = null;
+            bitmap = null;
+            byteArrayOutputStream = null;
+            byteArray = null;
+            location = null;
         }
     }
 
@@ -270,6 +281,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
+
+    /* MapsActivity Interface methods */
+
     /**
      * Method defined in MapsActivity so that the MapsActivity can get the location data.
      * (this may not need to be from the interface, but the interface ensures it)
@@ -280,8 +294,71 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return locationService.getUserLocation();
         } else {
             Log.d("MainActivity", "NOT CONNECTED AND REQUESTING LOCATION");
-            return new Location("");
+            return null;
         }
 //        return locationService.getUserLocation();
     }
+
+    /**
+     * Sets the image view with the image with the corresponding key in Firebase
+     */
+    @Override
+    public void setImage(String key) {
+        Log.d("ME", "Adding listener to: " + images.child(key).getPath().toString());
+
+        // TODO: Should probably save the image locally and check if the image is saved before accessing the DB again
+
+        // Adds a listener then removes it once it's triggered so that the image view is set
+        images.child(key).addListenerForSingleValueEvent(this);
+    }
+
+    /**
+     * Returns the geoFire object so that the MapsActivity can use
+     * the same object and save on memory :)
+     */
+    @Override
+    public GeoFire getGeoFire() {
+        return geoFire;
+    }
+
+    /**
+     * Sets the image view with the encoded image that is passed in
+     */
+    private void setImageEncoded(String encodedImage) {
+
+        // TODO: Remove this
+        // Checks if the encoded image string is null. This occurs when there is no image
+        // stored at that location because of testing
+        if (encodedImage != null) {
+
+            Log.d("ME", "Encoded Image != null! ");
+            // Decodes the image
+            byte[] decodedImage = Base64.decode(encodedImage, Base64.DEFAULT);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length);
+
+            // Sets the image
+            imageView.setImageBitmap(bitmap);
+
+            // Frees up some memory (i think lol)
+            bitmap = null;
+            decodedImage = null;
+        }
+    }
+
+    /*
+     * Firebase ValueEventListener callbacks used to set the image view.
+     * The listener is set in setImage(String key)
+     */
+
+    /**
+     * Sets the image view with the encoded image from Firebase
+     */
+    @Override
+    public void onDataChange(DataSnapshot dataSnapshot) {
+        Log.d("ME", "Getting image from: " + dataSnapshot.getRef().getPath());
+        setImageEncoded((String) dataSnapshot.getValue());
+    }
+
+    @Override
+    public void onCancelled(FirebaseError firebaseError) { }
 }
