@@ -34,10 +34,10 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
     private Circle queryRadius;
 
     // Firebase Objects
-    private Firebase firebaseRef;
     private GeoFire geoFire;
     private GeoQuery geoQuery;
-    private static final double QUERY_RADIUS = 0.5;
+    private static final double QUERY_RADIUS = 0.2;
+    private static final double MAX_QUERY_RADIUS = 5;
     private static final String FIREBASE_URL = "https://photodrop-umbc.firebaseio.com/";
     private static final String GEOFIRE_URL = FIREBASE_URL + "drops";
 
@@ -157,7 +157,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         // TODO: Remove this and make the location service give the first location it finds
         // But that will cause there to be an extra object in the location services class
         // Sets the location to be the user's location, but it's not available right away because
-        // locaiton services takes a while to start, so this is always: setLocation(null)
+        // location services takes a while to start, so this is always: setLocation(null)
         setLocation(mainActivity.getLocation());
     }
 

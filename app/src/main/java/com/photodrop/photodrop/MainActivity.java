@@ -3,18 +3,13 @@ package com.photodrop.photodrop;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -28,8 +23,8 @@ import com.firebase.client.ValueEventListener;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+// TODO: Getting Performing stop of activity that is not resumed error http://stackoverflow.com/questions/26375920/android-performing-stop-of-activity-that-is-not-resumed
+// TODO: Resource not found Exception
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapsActivity.LocationDataTransfer, ValueEventListener {
 
@@ -89,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
+
         fab.setOnClickListener(this);
         profileButton.setOnClickListener(this);
         compassButton.setOnClickListener(this);
@@ -111,6 +107,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (connected) {
             locationService.pauseService();
         }
+
+        Log.d("ME", "Everything Paused");
     }
 
     /**
@@ -139,7 +137,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.compassButton:
                 Location userLocation = locationService.getUserLocation();
                 if (userLocation != null) {
-                    Log.d("MainActivity", "User Location != null");
                     mapsActivity.setLocation(userLocation);
                 }
                 break;
@@ -156,75 +153,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (requestCode == START_CAMERA) {
             if (resultCode == RESULT_OK) {
-                try {
 
-                    // Gets the image bitmap
-                    Uri imageUri = data.getData();
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                // Gets the bitmap of the image from the URI
+                Bitmap imageBitmap = ImageUtil.getBitmapFromUri(this, data.getData());
 
-                    // Gets the orientation of the photo
-                    String[] orientationColumn = {MediaStore.Images.Media.ORIENTATION};
-                    Cursor cur = this.getContentResolver().query(imageUri, orientationColumn, null, null, null);
-                    int orientation = -1;
-                    if (cur != null && cur.moveToFirst()) {
-                        orientation = cur.getInt(cur.getColumnIndex(orientationColumn[0]));
-                    }
-                    cur.close();
+                // Set the image on screen
+                imageView.setImageBitmap(imageBitmap);
 
-
-                    // Redundency check since the cursor should always have something in it
-                    if (orientation == -1) {
-                        Log.e("MainActivity", "Orientation still -1");
-                    }
-                    else {
-                        // Correct the image's rotation
-                        bitmap = rotateImage(bitmap, orientation);
-
-                        // Set the image on screen
-                        imageView.setImageBitmap(bitmap);
-
-                        // Submits the image to the database in a new thread so the app runs super duper fast
-                        new Thread(new SaveImage(bitmap)).start();
-                    }
-                } catch (IOException e) {
-                    Log.e("MainActivity", "BITMAP ERROR: " + e.toString());
-                }
+                new Thread(new SaveImage(imageBitmap)).start();
             }
         }
     }
 
     /**
-     * Rotates the image at the specified angle
-     */
-    public static Bitmap rotateImage(Bitmap source, float angle) {
-        Bitmap result;
-
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        result = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
-
-        return result;
-    }
-
-    /**
      * Saves the image to Firebase
+     * TODO: Convert this to an AsyncTask if we want updates about the image's save progress
      */
     public class SaveImage implements Runnable {
         private Bitmap bitmap;
         public SaveImage(Bitmap bitmap) {
+            // TODO: Could remove the .copy() and remove the bitmap.recycle() in the ImageUtil,
+            // but will the garbage collector keep the SaveImage around because it points to
+            // the bitmap in the imageView?
             this.bitmap = bitmap.copy(bitmap.getConfig(), true);
         }
 
         @Override
         public void run() {
-
-            // Converts the image to an encoded String
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            // PNG is lossless quality but 100 ensures max quality
-            bitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_QUALITY, byteArrayOutputStream);
-            bitmap.recycle();
-            byte[] byteArray = byteArrayOutputStream.toByteArray();
-            String imageFile = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
             // Getting the user's location
             Location location = locationService.getUserLocation();
@@ -237,15 +192,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // Saves the location of the drop and saves the image with the same key
             geoFire.setLocation(imageKey, new GeoLocation(location.getLatitude(), location.getLongitude()));
-            images.child(imageKey).setValue(imageFile);
+            images.child(imageKey).setValue(ImageUtil.encodeBitmap(bitmap, IMAGE_QUALITY));
 
             // Frees up some memory (i think lol)
-            imageFile = null;
             imageKey = null;
             bitmap = null;
-            byteArrayOutputStream = null;
-            byteArray = null;
             location = null;
+
+            Log.d("ME", "Image saved!");
         }
     }
 
@@ -273,6 +227,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // Resumes the service
             locationService.resumeService();
+
+            Location userLocation = locationService.getUserLocation();
+            mapsActivity.setLocation(userLocation);
+//            if (userLocation != null) {
+
+//            }
         }
 
         @Override
@@ -321,29 +281,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return geoFire;
     }
 
-    /**
-     * Sets the image view with the encoded image that is passed in
-     */
-    private void setImageEncoded(String encodedImage) {
-
-        // TODO: Remove this
-        // Checks if the encoded image string is null. This occurs when there is no image
-        // stored at that location because of testing
-        if (encodedImage != null) {
-
-            Log.d("ME", "Encoded Image != null! ");
-            // Decodes the image
-            byte[] decodedImage = Base64.decode(encodedImage, Base64.DEFAULT);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length);
-
-            // Sets the image
-            imageView.setImageBitmap(bitmap);
-
-            // Frees up some memory (i think lol)
-            bitmap = null;
-            decodedImage = null;
-        }
-    }
 
     /*
      * Firebase ValueEventListener callbacks used to set the image view.
@@ -356,7 +293,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onDataChange(DataSnapshot dataSnapshot) {
         Log.d("ME", "Getting image from: " + dataSnapshot.getRef().getPath());
-        setImageEncoded((String) dataSnapshot.getValue());
+
+        // Sets the image
+        imageView.setImageBitmap(ImageUtil.getBitmapFromEncodedImage((String) dataSnapshot.getValue()));
     }
 
     @Override
