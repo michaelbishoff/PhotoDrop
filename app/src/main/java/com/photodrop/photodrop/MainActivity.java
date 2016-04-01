@@ -13,35 +13,34 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.ValueEventListener;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 
 // TODO: Getting Performing stop of activity that is not resumed error http://stackoverflow.com/questions/26375920/android-performing-stop-of-activity-that-is-not-resumed
 // TODO: Resource not found Exception
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapsActivity.LocationDataTransfer, ValueEventListener {
+// Note: Was thinking about making a FirebaseUtil class that handles all of the firebase accesses
+// and makes it so the entire app references the same Firebase object rather than having
+// duplicates of the light weight references
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapsActivity.LocationDataTransfer {
 
     // UI Buttons
     private FloatingActionButton fab;
-    private ImageView imageView;
     private ImageButton profileButton;
     private FloatingActionButton compassButton;
     private static final int START_CAMERA = 1000;
     private static final int IMAGE_QUALITY = 1;
 
     // Firebase Objects
-    private Firebase images;
+    public Firebase images;
     private GeoFire geoFire;
-    private static final String FIREBASE_URL = "https://photodrop-umbc.firebaseio.com/";
-    private static final String IMAGES_URL = FIREBASE_URL + "images";
-    private static final String GEOFIRE_URL = FIREBASE_URL + "drops";
+    public static final String FIREBASE_URL = "https://photodrop-umbc.firebaseio.com/";
+    public static final String IMAGES_URL = FIREBASE_URL + "images";
+    public static final String GEOFIRE_URL = FIREBASE_URL + "drops";
 
     // Service Objects
     private LocationService.LocationServiceBinder binder;
@@ -61,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Gets the UI elements
         fab = (FloatingActionButton) findViewById(R.id.fab);
-        imageView = (ImageView) findViewById(R.id.imageView);
         profileButton = (ImageButton) findViewById(R.id.profileButton);
         compassButton = (FloatingActionButton) findViewById(R.id.compassButton);
 
@@ -73,9 +71,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         images = new Firebase(IMAGES_URL);
         geoFire = new GeoFire(new Firebase(GEOFIRE_URL));
 
-        // Binds the service. Calls the onServiceConnected() method below
-        Intent serviceIntent = new Intent(this, LocationService.class);
-        bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
+        Log.d("ME-MainActivity-DO", "Done onCreate()");
     }
 
     /**
@@ -89,9 +85,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         profileButton.setOnClickListener(this);
         compassButton.setOnClickListener(this);
 
-        if (connected) {
-            locationService.resumeService();
-        }
+        // Binds the service. Calls the onServiceConnected() method below
+        Intent serviceIntent = new Intent(this, LocationService.class);
+        bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE);
     }
 
     /**
@@ -104,9 +100,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         profileButton.setOnClickListener(null);
         compassButton.setOnClickListener(null);
 
+        // This may be redundant since we're unbinding the service immediately after
         if (connected) {
             locationService.pauseService();
         }
+
+        unbindService(serviceConnection);
 
         Log.d("ME", "Everything Paused");
     }
@@ -157,9 +156,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // Gets the bitmap of the image from the URI
                 Bitmap imageBitmap = ImageUtil.getBitmapFromUri(this, data.getData());
 
-                // Set the image on screen
-                imageView.setImageBitmap(imageBitmap);
-
+                // Saves the image to Firebase
                 new Thread(new SaveImage(imageBitmap)).start();
             }
         }
@@ -260,19 +257,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Sets the image view with the image with the corresponding key in Firebase
-     */
-    @Override
-    public void setImage(String key) {
-        Log.d("ME", "Adding listener to: " + images.child(key).getPath().toString());
-
-        // TODO: Should probably save the image locally and check if the image is saved before accessing the DB again
-
-        // Adds a listener then removes it once it's triggered so that the image view is set
-        images.child(key).addListenerForSingleValueEvent(this);
-    }
-
-    /**
      * Returns the geoFire object so that the MapsActivity can use
      * the same object and save on memory :)
      */
@@ -280,24 +264,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public GeoFire getGeoFire() {
         return geoFire;
     }
-
-
-    /*
-     * Firebase ValueEventListener callbacks used to set the image view.
-     * The listener is set in setImage(String key)
-     */
-
-    /**
-     * Sets the image view with the encoded image from Firebase
-     */
-    @Override
-    public void onDataChange(DataSnapshot dataSnapshot) {
-        Log.d("ME", "Getting image from: " + dataSnapshot.getRef().getPath());
-
-        // Sets the image
-        imageView.setImageBitmap(ImageUtil.getBitmapFromEncodedImage((String) dataSnapshot.getValue()));
-    }
-
-    @Override
-    public void onCancelled(FirebaseError firebaseError) { }
 }

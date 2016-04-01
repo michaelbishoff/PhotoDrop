@@ -12,24 +12,6 @@
     tools:context="com.photodrop.photodrop.MainActivity"
     tools:showIn="@layout/activity_main">
 
-
-    <!--<Button-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text="New Button"-->
-        <!--android:id="@+id/button"-->
-        <!--android:layout_alignParentBottom="true"-->
-        <!--android:layout_centerHorizontal="true"-->
-        <!--android:layout_marginBottom="0dp" />-->
-
-
-    <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:id="@+id/imageView"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true" />
-
     <ImageButton
         style="?android:attr/buttonStyleSmall"
         android:layout_width="50dp"
@@ -62,8 +44,9 @@
         android:layout_gravity="bottom|end"
         android:src="@android:drawable/ic_menu_mylocation"
         android:layout_marginLeft="@dimen/fab_margin"
-        android:layout_above="@+id/imageView"
-        android:layout_alignEnd="@+id/profileButton" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignEnd="@+id/profileButton"
+        android:layout_marginBottom="83dp" />
 
 
 </RelativeLayout>
