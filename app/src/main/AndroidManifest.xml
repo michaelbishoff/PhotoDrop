@@ -41,23 +41,70 @@
             </intent-filter>
         </activity>
 
-        <!-- parentActivityName keeps track of a proper back stack.
-             Also adds a back button to the action bar!-->
+        <!--
+             parentActivityName keeps track of a proper back stack.
+             Also adds a back button to the action bar!
+        -->
         <activity
             android:name=".ImageActivity"
             android:label=""
             android:parentActivityName=".MainActivity">
+
+            <!-- The meta-data element is needed for versions lower than 4.1 -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+        <activity
+            android:name=".CommentActivity"
+            android:label="Comments"
+            android:parentActivityName=".ImageActivity">
+
+            <!-- The meta-data element is needed for versions lower than 4.1 -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ImageActivity" />
+        </activity>
+
+        <!--  -->
+        <activity
+            android:name=".ProfileActivity"
+            android:label="@string/title_activity_profile"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+
             <!-- The meta-data element is needed for versions lower than 4.1 -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
 
+        <activity
+            android:name=".SettingsActivity"
+            android:label="Settings"
+            android:parentActivityName=".ProfileActivity">
+
+            <!-- The meta-data element is needed for versions lower than 4.1 -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ProfileActivity" />
+        </activity>
+
+        <activity
+            android:name=".ChangePasswordActivity"
+            android:label="Change Password"
+            android:parentActivityName=".SettingsActivity">
+
+            <!-- The meta-data element is needed for versions lower than 4.1 -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".SettingsActivity" />
+        </activity>
+
         <service
             android:name=".LocationService"
             android:enabled="true"
             android:exported="true" />
-
     </application>
 
 </manifest>

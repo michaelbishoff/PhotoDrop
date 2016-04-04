@@ -33,6 +33,10 @@ import java.util.HashMap;
 // TODO: Could make an object for the marker and the ID so that we can use the title and the snippet,
 // but then still need a way to check if the marker they clicked was in range or not (in constant time) in onMarkerClick()
 
+// TODO: Should store the user's location and the locations of the nearby drops in the SQLite
+// database. Then when the app is reopened or resumed, we can check if the most recent location
+// isn't significantly od or if it matches the current location and load the SQLite data rather than calling Firebase again
+
 public class MapsActivity extends SupportMapFragment implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     // Map Objects
@@ -320,9 +324,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
 
         /* Called when a key has moved within the search area (should never be called) */
         @Override
-        public void onKeyMoved(String key, GeoLocation location) {
-
-        }
+        public void onKeyMoved(String key, GeoLocation location) { }
 
         /**
          * Called when all previous data has been loaded

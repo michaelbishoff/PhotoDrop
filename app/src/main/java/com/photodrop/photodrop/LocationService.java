@@ -21,6 +21,8 @@ public class LocationService extends Service implements LocationListener {
     // Location objects
     private LocationManager locationManager;
     private static final int TWO_MINUTES = 1000 * 60 * 2;
+    private static final int FIVE_SECONDS = 5000; // In milliseconds
+    private static final int FIVE_METERS = 5; // in meters
 
     public LocationService() {
     }
@@ -42,12 +44,10 @@ public class LocationService extends Service implements LocationListener {
         }
     }
 
-
+    /* LocationListener Methods */
 
     @Override
-    public void onLocationChanged(Location location) {
-
-    }
+    public void onLocationChanged(Location location) { }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) { }
@@ -84,9 +84,9 @@ public class LocationService extends Service implements LocationListener {
         // Need to request GPS and Network Provider so we can call getLastKnownLocation()
         // GPS or Network provider (indoors) for triangulation, minTime in miliseconds between
         // updates 0 is fast as possible, minDistance how far the user has to move before we read
-        // another value 0 because we don't move a lot
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
+        // another value. 0, 0 because we don't move a lot. Must satisfy both to return a value
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, FIVE_SECONDS, FIVE_METERS, this);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, FIVE_SECONDS, FIVE_METERS, this);
     }
 
     /**

@@ -26,6 +26,9 @@ import com.firebase.geofire.GeoLocation;
 // and makes it so the entire app references the same Firebase object rather than having
 // duplicates of the light weight references
 
+// TODO: Why does the app use so much memory after taking a photo
+// TODO: Delete teh photo on the user's device
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapsActivity.LocationDataTransfer {
 
     // UI Buttons
@@ -129,15 +132,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.profileButton:
 
                 // Switch to profile page
-                Toast.makeText(MainActivity.this, "Show Profile Page", Toast.LENGTH_SHORT).show();
+                Intent profileIntent = new Intent(MainActivity.this, ProfileActivity.class);
+//                profileIntent.putExtra("USERNMAE", "michaelbishoff");
+                startActivity(profileIntent);
                 break;
 
             // Sets the maps center when the user presses the compass button
             case R.id.compassButton:
-                Location userLocation = locationService.getUserLocation();
-                if (userLocation != null) {
-                    mapsActivity.setLocation(userLocation);
-                }
+                mapsActivity.setLocation(locationService.getUserLocation());
                 break;
         }
     }
@@ -172,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // TODO: Could remove the .copy() and remove the bitmap.recycle() in the ImageUtil,
             // but will the garbage collector keep the SaveImage around because it points to
             // the bitmap in the imageView?
-            this.bitmap = bitmap.copy(bitmap.getConfig(), true);
+            this.bitmap = bitmap;//.copy(bitmap.getConfig(), true);
         }
 
         @Override
@@ -225,11 +227,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Resumes the service
             locationService.resumeService();
 
-            Location userLocation = locationService.getUserLocation();
-            mapsActivity.setLocation(userLocation);
-//            if (userLocation != null) {
-
-//            }
+            // Sets the user's location on the map
+            mapsActivity.setLocation(locationService.getUserLocation());
         }
 
         @Override

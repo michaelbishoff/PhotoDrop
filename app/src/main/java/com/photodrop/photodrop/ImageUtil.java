@@ -58,11 +58,11 @@ public class ImageUtil {
      * Rotates the image at the specified angle
      */
     public static Bitmap rotateImage(Bitmap source, float angle) {
-        Bitmap result;
-
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
-        result = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+        Bitmap result = Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+        source.recycle();
+        source = null;
 
         return result;
     }

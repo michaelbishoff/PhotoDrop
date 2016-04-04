@@ -2,4 +2,6 @@
     <string name="app_name">PhotoDrop</string>
     <string name="title_activity_maps">PhotoDrop</string>
     <string name="title_activity_main">PhotoDrop</string>
+    <string name="title_activity_profile">Profile</string>
+    <string name="action_settings">Settings</string>
 </resources>
