@@ -1,10 +1,13 @@
 package com.photodrop.photodrop;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,7 +44,6 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
 
     // Map Objects
     private GoogleMap mMap;
-    private Marker userLocationMarker;
     private Circle queryRadius;
     private Circle maxQueryRadius;
     private HashMap<String, Marker> viewableDrops;
@@ -139,6 +141,22 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         // Sets the handler for when the markers are clicked on
         mMap.setOnMarkerClickListener(this);
 
+
+        // Adding the user's location to the map requires this check for permissions
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        // Adds the user location to the map
+        mMap.setMyLocationEnabled(true);
+
         // TODO: Remove this and make the location service give the first location it finds
         // But that will cause there to be an extra object in the location services class
         // Sets the location to be the user's location, but it's not available right away because
@@ -157,7 +175,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         Log.d("ME", "Clicked on: " + marker.getTitle());
 
         // If the user clicked the user icon or a drop that is out of range, then do nothing
-        if (marker.equals(userLocationMarker) || notViewableDrops.containsKey(marker.getTitle())) {
+        if (notViewableDrops.containsKey(marker.getTitle())) {
             return true;
         }
 
@@ -211,12 +229,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
 
 
         // Initializes the user marker and query radius
-        if (userLocationMarker == null) {
-            // Adds the user location to the map and offsets the image so it looks correct
-            userLocationMarker = mMap.addMarker(new MarkerOptions()
-                    .position(userLatLng)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.current_location))
-                    .anchor(0.5f, 0.5f));
+        if (queryRadius == null) {
 
             // Adds a circle that indicates the query radius in meters for viewable photos
             queryRadius = mMap.addCircle(new CircleOptions()
@@ -231,9 +244,6 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
                     .radius(MAX_QUERY_RADIUS * 1000)
                     .strokeColor(Color.GRAY));
         } else {
-
-            // Moves the user's location marker
-            userLocationMarker.setPosition(userLatLng);
 
             // Moves the query radius to the user's location
             queryRadius.setCenter(userLatLng);
