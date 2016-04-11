@@ -141,7 +141,6 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         // Sets the handler for when the markers are clicked on
         mMap.setOnMarkerClickListener(this);
 
-
         // Adding the user's location to the map requires this check for permissions
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -151,11 +150,16 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
+//            ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1000);
             return;
         }
 
         // Adds the user location to the map
         mMap.setMyLocationEnabled(true);
+
+        // TODO: Should setup a LocationSource so that the LocationService is used for
+        // both the user's location and the circles
+//        mMap.setLocationSource(LocationSource);
 
         // TODO: Remove this and make the location service give the first location it finds
         // But that will cause there to be an extra object in the location services class

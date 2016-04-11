@@ -18,7 +18,7 @@ import java.io.IOException;
  */
 public class ImageUtil {
 
-    // TODO: May want to make these AsyncTasks
+    // TODO: May want to (should probably) make these AsyncTasks
 
     /**
      * Gets the Bitmap of the image at the specified URI
