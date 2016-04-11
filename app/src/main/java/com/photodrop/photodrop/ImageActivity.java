@@ -1,7 +1,6 @@
 package com.photodrop.photodrop;
 
 import android.content.Intent;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,11 +8,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.MutableData;
+import com.firebase.client.Transaction;
 import com.firebase.client.ValueEventListener;
 
 // TODO: Use this to make transparent action bar: http://stackoverflow.com/questions/26505632/how-to-make-toolbar-transparent
@@ -22,7 +24,8 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
 
     // UI Elements
     private ImageView imageView;
-    private Button like, comment, flag;
+    private Button likeButton, commentButton, flagButton;
+    private TextView numLikesText;
 
     // Firebase Objects
     private Firebase images;
@@ -37,34 +40,35 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         imageView = (ImageView) findViewById(R.id.imageView);
 
         // Initializes the Firebase reference
-        images = new Firebase(MainActivity.IMAGES_URL);
+        images = new Firebase(MainActivity.FIREBASE_IMAGES_URL);
 
         // Sets the image with the corresponding image key that was passed to this activity
         imageKey = getIntent().getStringExtra(MapsActivity.IMAGE_KEY);
-        setImage(imageKey);
+        setImageData();
 
         // Gets the UI elements
-        like = (Button) findViewById(R.id.likeButton);
-        comment = (Button) findViewById(R.id.commentButton);
-        flag = (Button) findViewById(R.id.flagButton);
+        likeButton = (Button) findViewById(R.id.likeButton);
+        commentButton = (Button) findViewById(R.id.commentButton);
+        flagButton = (Button) findViewById(R.id.flagButton);
+        numLikesText = (TextView) findViewById(R.id.numLikes);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        like.setOnClickListener(this);
-        comment.setOnClickListener(this);
-        flag.setOnClickListener(this);
+        likeButton.setOnClickListener(this);
+        commentButton.setOnClickListener(this);
+        flagButton.setOnClickListener(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        like.setOnClickListener(null);
-        comment.setOnClickListener(null);
-        flag.setOnClickListener(null);
+        likeButton.setOnClickListener(null);
+        commentButton.setOnClickListener(null);
+        flagButton.setOnClickListener(null);
 
         // TODO: Could write the bitmap to a file so we can bring it back up later without connecting to Firebase and save on memory
 
@@ -91,13 +95,14 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
     /**
      * Sets the image view with the image with the corresponding key in Firebase
      */
-    public void setImage(String key) {
-        Log.d("ME", "Adding listener to: " + images.child(key).getPath().toString());
+    public void setImageData() {
+        Log.d("ME", "Adding listener to: " + images.child(imageKey).getPath().toString());
 
         // TODO: Should probably save the image locally and check if the image is saved before accessing the DB again
 
-        // Adds a listener then removes it once it's triggered so that the image view is set
-        images.child(key).addListenerForSingleValueEvent(this);
+        // Adds a listener then removes it once it's triggered so that the image view and num likes are set
+        images.child(imageKey + MainActivity.IMAGE_URL).addListenerForSingleValueEvent(this);
+        images.child(imageKey + MainActivity.LIKES_URL).addListenerForSingleValueEvent(this);
     }
 
     /*
@@ -110,10 +115,27 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
      */
     @Override
     public void onDataChange(DataSnapshot dataSnapshot) {
-        Log.d("ME", "Getting image from: " + dataSnapshot.getRef().getPath());
+        Log.d("ME", "Key of this callback: " + dataSnapshot.getKey());
 
-        // Sets the image
-        imageView.setImageBitmap(ImageUtil.getBitmapFromEncodedImage((String) dataSnapshot.getValue()));
+        // If there's a value in the
+        if (dataSnapshot.getValue() != null) {
+
+            String key = dataSnapshot.getKey();
+
+            if (key.equals("image")) {
+                Log.d("ME", "Getting image from: " + dataSnapshot.getRef().getPath());
+                // Sets the image
+                imageView.setImageBitmap(ImageUtil.getBitmapFromEncodedImage(
+                        (String) dataSnapshot.getValue()));
+
+            } else if (key.equals("likes")) {
+                Log.d("ME", "Loading Likes: " + dataSnapshot.getValue());
+                numLikesText.setText(String.format("%d Likes", (long) dataSnapshot.getValue()));
+
+            }
+            // TODO: Add num comments to the image view
+//            else if (key.equals("num_comments")) { }
+        }
     }
 
     @Override
@@ -123,11 +145,13 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.likeButton:
-                // TODO: Make this go to Firebase
-                Toast.makeText(ImageActivity.this, "Like", Toast.LENGTH_SHORT).show();
+
+                // Starts a thread safe incrementation of the number of likes
+                images.child(imageKey + MainActivity.LIKES_URL).runTransaction(new IncrementLikesTransaction());
                 break;
 
             case R.id.commentButton:
+                // Opens the CommentActivity
                 Intent commentIntent = new Intent(ImageActivity.this, CommentActivity.class);
                 // Passes this image's key to the CommentActivity
                 commentIntent.putExtra(MapsActivity.IMAGE_KEY, imageKey);
@@ -139,6 +163,44 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
                 // TODO: Make this go to Firebase
                 Toast.makeText(ImageActivity.this, "Flagged", Toast.LENGTH_SHORT).show();
                 break;
+        }
+    }
+
+
+    /* Firebase Transaction
+     * Transactions are used when concurrent modifications could corrupt the data
+     */
+
+    /**
+     * Increments the number of likes at the specified url (should end in /likes)
+     */
+    private class IncrementLikesTransaction implements Transaction.Handler {
+
+        /**
+         * The Transaction we want to run on the specified data.
+         * If there is no value, set it. If there is a value, increment it.
+         */
+        @Override
+        public Transaction.Result doTransaction(MutableData mutableData) {
+            Log.d("ME", "Incrementing " + imageKey + " from: " + mutableData.getValue());
+            if (mutableData.getValue() == null) {
+                mutableData.setValue(1);
+            } else {
+                mutableData.setValue((long) mutableData.getValue() + 1);
+            }
+            Log.d("ME", "to: " + mutableData.getValue());
+
+            return Transaction.success(mutableData); // we can also abort by calling Transaction.abort()
+        }
+
+        /**
+         * This method will be called once with the results of the transaction.
+         * Updates the UI with the new like count.
+         */
+        @Override
+        public void onComplete(FirebaseError firebaseError, boolean commited, DataSnapshot dataSnapshot) {
+            Log.d("ME", "Updating UI to " + dataSnapshot.getValue() + " num likes");
+            numLikesText.setText(String.format("%d Likes", (long) dataSnapshot.getValue()));
         }
     }
 }

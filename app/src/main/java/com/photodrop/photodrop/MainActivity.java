@@ -42,8 +42,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public Firebase images;
     private GeoFire geoFire;
     public static final String FIREBASE_URL = "https://photodrop-umbc.firebaseio.com/";
-    public static final String IMAGES_URL = FIREBASE_URL + "images";
+    public static final String FIREBASE_IMAGES_URL = FIREBASE_URL + "images";
     public static final String GEOFIRE_URL = FIREBASE_URL + "drops";
+    // Keys for a specific image, comments, or likes
+    public static final String IMAGE_URL = "/image";
+    public static final String COMMENTS_URL = "/comments";
+    public static final String LIKES_URL = "/likes";
 
     // Service Objects
     private LocationService.LocationServiceBinder binder;
@@ -71,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Initializes the Firebase references
         Firebase.setAndroidContext(this);
-        images = new Firebase(IMAGES_URL);
+        images = new Firebase(FIREBASE_IMAGES_URL);
         geoFire = new GeoFire(new Firebase(GEOFIRE_URL));
 
         Log.d("ME-MainActivity-DO", "Done onCreate()");
@@ -179,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void run() {
+            // TODO: If !connected, then locationService is null and it crashes
 
             // Getting the user's location
             Location location = locationService.getUserLocation();
@@ -191,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // Saves the location of the drop and saves the image with the same key
             geoFire.setLocation(imageKey, new GeoLocation(location.getLatitude(), location.getLongitude()));
-            images.child(imageKey).setValue(ImageUtil.encodeBitmap(bitmap, IMAGE_QUALITY));
+            images.child(imageKey + IMAGE_URL).setValue(ImageUtil.encodeBitmap(bitmap, IMAGE_QUALITY));
 
             // Frees up some memory (i think lol)
             imageKey = null;
