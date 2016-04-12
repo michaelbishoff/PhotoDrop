@@ -78,6 +78,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         Log.d("ME", "onAttach() mainActivity == " + mainActivity);
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

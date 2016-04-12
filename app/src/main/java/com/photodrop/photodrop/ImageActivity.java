@@ -103,6 +103,7 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         // Adds a listener then removes it once it's triggered so that the image view and num likes are set
         images.child(imageKey + MainActivity.IMAGE_URL).addListenerForSingleValueEvent(this);
         images.child(imageKey + MainActivity.LIKES_URL).addListenerForSingleValueEvent(this);
+        //images.child(imageKey + MainActivity.COMMENTS_URL).addListenerForSingleValueEvent(this);
     }
 
     /*
