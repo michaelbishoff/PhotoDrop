@@ -22,5 +22,16 @@
     </android.support.design.widget.AppBarLayout>
 
     <include layout="@layout/content_profile" />
+    <GridView
+        android:id="@+id/profileActivityGridview"
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:columnWidth="50pt"
+        android:numColumns="auto_fit"
+        android:verticalSpacing="5dp"
+        android:horizontalSpacing="5dp"
+        android:stretchMode="columnWidth"
+        android:gravity="center"/>
 
 </android.support.design.widget.CoordinatorLayout>
