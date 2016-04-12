@@ -158,12 +158,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (requestCode == START_CAMERA) {
             if (resultCode == RESULT_OK) {
+                if (data != null) {
+                    // Gets the bitmap of the image from the URI
+                    Bitmap imageBitmap = ImageUtil.getBitmapFromUri(this, data.getData());
 
-                // Gets the bitmap of the image from the URI
-                Bitmap imageBitmap = ImageUtil.getBitmapFromUri(this, data.getData());
+                    // Saves the image to Firebase
+                    new Thread(new SaveImage(imageBitmap)).start();
 
-                // Saves the image to Firebase
-                new Thread(new SaveImage(imageBitmap)).start();
+                } else {
+                    Toast.makeText(MainActivity.this, "Photo not saved :(", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }

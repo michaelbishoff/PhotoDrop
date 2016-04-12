@@ -182,13 +182,11 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
          */
         @Override
         public Transaction.Result doTransaction(MutableData mutableData) {
-            Log.d("ME", "Incrementing " + imageKey + " from: " + mutableData.getValue());
             if (mutableData.getValue() == null) {
                 mutableData.setValue(1);
             } else {
                 mutableData.setValue((long) mutableData.getValue() + 1);
             }
-            Log.d("ME", "to: " + mutableData.getValue());
 
             return Transaction.success(mutableData); // we can also abort by calling Transaction.abort()
         }
