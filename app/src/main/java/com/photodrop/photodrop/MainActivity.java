@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (requestCode == START_CAMERA) {
             if (resultCode == RESULT_OK) {
-                if (data != null) {
+                if (data != null && data.getData() != null) {
                     // Gets the bitmap of the image from the URI
                     Bitmap imageBitmap = ImageUtil.getBitmapFromUri(this, data.getData());
 
