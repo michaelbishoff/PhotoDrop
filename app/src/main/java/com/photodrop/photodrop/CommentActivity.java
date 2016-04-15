@@ -30,7 +30,7 @@ public class CommentActivity extends AppCompatActivity {
 
     //UI
     ListView mListView;
-    Button mButton;
+    Button sendButton;
     EditText mEditText;
 
     //Comments Data
@@ -51,8 +51,9 @@ public class CommentActivity extends AppCompatActivity {
 
         mListView = (ListView) findViewById(R.id.listView);
 
-        mButton = (Button) findViewById(R.id.buttonSend);
+        sendButton = (Button) findViewById(R.id.buttonSend);
         mEditText = (EditText) findViewById(R.id.editTextComments);
+        /*
         mEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -62,16 +63,10 @@ public class CommentActivity extends AppCompatActivity {
                 return true;
             }
         });
-
-        mEditText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mEditText.setText("");
-            }
-        });
+        */
 
 
-        mButton.setOnClickListener(new View.OnClickListener() {
+        sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 sendMessage();
@@ -112,7 +107,7 @@ public class CommentActivity extends AppCompatActivity {
     public void sendMessage(){
         String temp = mEditText.getText().toString();
         //mComments.add(temp);
-        if (!images.equals(""))
+        if (!temp.equals(""))
         {
             images.child(imageKey + MainActivity.COMMENTS_URL).push().setValue(temp);
         }
