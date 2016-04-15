@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FloatingActionButton fab;
     private ImageButton profileButton;
     private FloatingActionButton compassButton;
-    private static final int START_CAMERA = 1000;
+    private static final int CAMERA_REQUEST = 1000;
     private static final int IMAGE_QUALITY = 1;
 
     // Firebase Objects
@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // Open the camera and take a picture
                 Intent cameraIntent = new Intent();
                 cameraIntent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(cameraIntent, START_CAMERA);
+                startActivityForResult(cameraIntent, CAMERA_REQUEST);
 
                 break;
 
@@ -156,11 +156,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == START_CAMERA) {
+        if (requestCode == CAMERA_REQUEST) {
             if (resultCode == RESULT_OK) {
                 if (data != null && data.getData() != null) {
                     // Gets the bitmap of the image from the URI
                     Bitmap imageBitmap = ImageUtil.getBitmapFromUri(this, data.getData());
+//                    Bitmap imageBitmap = (Bitmap) data.getExtras().get("data"); // This is of lower resolution
 
                     // Saves the image to Firebase
                     new Thread(new SaveImage(imageBitmap)).start();

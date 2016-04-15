@@ -70,10 +70,8 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         commentButton.setOnClickListener(null);
         flagButton.setOnClickListener(null);
 
-        // TODO: Could write the bitmap to a file so we can bring it back up later without connecting to Firebase and save on memory
-
-        // This doesn't seem to be freeing up memeory
-        imageView.setImageBitmap(null);
+        // TODO: Write the bitmap to a file so we can bring it back up later without wasting memory
+        // or (what we don't do) re-connecting to Firebase download the photo again
     }
 
     /**
@@ -103,6 +101,7 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         // Adds a listener then removes it once it's triggered so that the image view and num likes are set
         images.child(imageKey + MainActivity.IMAGE_URL).addListenerForSingleValueEvent(this);
         images.child(imageKey + MainActivity.LIKES_URL).addListenerForSingleValueEvent(this);
+        //images.child(imageKey + MainActivity.COMMENTS_URL).addListenerForSingleValueEvent(this);
     }
 
     /*
