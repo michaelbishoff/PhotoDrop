@@ -90,7 +90,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
 
         // Initializes the Firebase references
         Firebase.setAndroidContext(getActivity());
-        geoFire = new GeoFire(new Firebase((MainActivity.GEOFIRE_URL)));
+        geoFire = new GeoFire(new Firebase(MainActivity.GEOFIRE_URL));
 
 //        geoFire = mainActivity.getGeoFire();
         // ^^ Want to do this because it saves memory on one object! But there's a RuntimeException

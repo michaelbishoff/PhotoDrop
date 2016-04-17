@@ -58,7 +58,8 @@
         <activity
             android:name=".CommentActivity"
             android:label="Comments"
-            android:parentActivityName=".ImageActivity">
+            android:parentActivityName=".ImageActivity"
+            android:windowSoftInputMode="stateHidden" >
 
             <!-- The meta-data element is needed for versions lower than 4.1 -->
             <meta-data

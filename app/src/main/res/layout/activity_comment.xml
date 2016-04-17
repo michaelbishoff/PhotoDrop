@@ -6,6 +6,18 @@
     android:orientation="vertical"
     tools:context="com.photodrop.photodrop.CommentActivity">
 
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+    <TextView
+        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:gravity="center_horizontal"
+        android:paddingTop="50dp"
+        android:id="@+id/noCommentsText"
+        android:text="@string/no_comments_text"
+        android:textSize="20sp" />
+
     <ListView
         android:id="@+id/listView"
         android:layout_height="0dp"
@@ -13,33 +25,56 @@
         android:layout_weight="1">
     </ListView>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:baselineAligned="false">
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
 
-        <EditText
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_weight="1"
-            android:id="@+id/editTextComments"
-            android:ellipsize="end"
-            android:hint="Write a message..."
-            android:textSize="16dp"
-            android:maxLines="5"
-            android:scrollbars="vertical" />
+            android:orientation="horizontal"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:id="@+id/messageBox"
+            android:baselineAligned="false"
+            android:background="#E0E0E0"
+            android:descendantFocusability="beforeDescendants"
+            android:focusableInTouchMode="true">
 
-        <Button
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:id="@+id/buttonSend"
-            android:text="Send" />
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_weight="1"
+                android:id="@+id/editTextComments"
+                android:ellipsize="end"
+                android:hint="@string/comment_hint"
+                android:textSize="16sp"
+                android:maxLines="4"
+                android:scrollbars="vertical"
+                android:inputType="textShortMessage|textMultiLine" />
 
-    </LinearLayout>
+            <Button
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:id="@+id/buttonSend"
+                android:text="@string/send_comment_text" />
+
+        </LinearLayout>
+
+        <!-- Text view used to make our own snack bar -->
+        <!--<TextView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="48dp"-->
+            <!--android:id="@+id/mySnackBar"-->
+            <!--android:textSize="14sp"-->
+            <!--android:text="New Comment"-->
+            <!--android:textColor="#FFFFFF"-->
+            <!--android:background="#323232"-->
+            <!--android:gravity="center_vertical"-->
+            <!--android:paddingLeft="24dp" />-->
+
+    </RelativeLayout>
 
 </LinearLayout>

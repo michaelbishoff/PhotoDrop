@@ -42,12 +42,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public Firebase images;
     private GeoFire geoFire;
     public static final String FIREBASE_URL = "https://photodrop-umbc.firebaseio.com/";
-    public static final String FIREBASE_IMAGES_URL = FIREBASE_URL + "images";
+    public static final String FIREBASE_IMAGES_URL = FIREBASE_URL + "images/";
     public static final String GEOFIRE_URL = FIREBASE_URL + "drops";
     // Keys for a specific image, comments, or likes
     public static final String IMAGE_URL = "/image";
     public static final String COMMENTS_URL = "/comments";
     public static final String LIKES_URL = "/likes";
+    public static final String NUM_COMMENTS_URL = "/num_comments";
 
     // Service Objects
     private LocationService.LocationServiceBinder binder;
