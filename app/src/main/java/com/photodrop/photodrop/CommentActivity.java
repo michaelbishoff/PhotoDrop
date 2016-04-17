@@ -51,6 +51,9 @@ public class CommentActivity extends AppCompatActivity {
 
         // Get the image key from the activity that launched the CommentActivity
         imageKey = getIntent().getStringExtra(MapsActivity.IMAGE_KEY);
+        // TODO: Pass the numComments to the Comment Activity so we don't have to go to Firebase
+        // twice (once for putting the num comments on the ImageActivity and below)
+//        numComments = getIntent().getStringExtra(MapsActivity.NUM_COMMENTS);
 
         // Firebase reference to comments
         Firebase.setAndroidContext(this);
@@ -97,7 +100,6 @@ public class CommentActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // If there are comments, set the number of comments
                 Object data = dataSnapshot.getValue();
-                Log.d("ME", "data = " + data);
                 if (data != null) {
                     initialNumComments = (long) data;
                     noCommentsText.setVisibility(View.GONE);
@@ -108,7 +110,9 @@ public class CommentActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) { }
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e("FirebaseError", firebaseError.getDetails());
+            }
         });
 
         // Loads in new comments as they come in
@@ -127,9 +131,6 @@ public class CommentActivity extends AppCompatActivity {
 
                 // Updates the UI
                 mAdapter.notifyDataSetChanged();
-
-                Log.d("ME", "initialNumComments = " + initialNumComments);
-                Log.d("ME", "numComments = " + numComments);
 
                 // If the user made the comment, go to the bottom
                 if (comment.equals(userComment)) {
