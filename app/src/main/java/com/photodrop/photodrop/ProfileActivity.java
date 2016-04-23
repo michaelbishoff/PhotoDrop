@@ -75,7 +75,7 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
+                System.out.println("I am confused...\n");
             }
 
             @Override
