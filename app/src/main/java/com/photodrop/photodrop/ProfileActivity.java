@@ -201,5 +201,4 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
         }
         return super.onOptionsItemSelected(item);
     }
-
 }
