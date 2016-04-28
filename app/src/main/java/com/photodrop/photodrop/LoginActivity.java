@@ -68,6 +68,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
     private UserAuth userAuth;
+    private Button button2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +99,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
         });
+
 
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
@@ -252,16 +254,33 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
-
+/*
     public void signIn(View v){
         try{
-            Intent mainView = new Intent(this, MainActivity.class);
-            startActivity(mainView);
+            if (userAuth.ref.getAuth() != null)
+            {
+                Intent mainView = new Intent(this, MainActivity.class);
+                startActivity(mainView);
+            }
+
         }
         catch(Exception e){
             Log.d("Sandy's Error:", e.getMessage());
         }
-    }
+    }*/
+/*
+    public void register(View v)
+    {
+        try{
+            Intent registerView = new Intent(this, RegisterActivity.class);
+            startActivity(registerView);
+
+        }
+        catch(Exception e)
+        {
+            Log.d("Sandy's error:", e.getMessage());
+        }
+    }*/
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
@@ -343,11 +362,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
                     @Override
                     public void onAuthenticationError(FirebaseError firebaseError) {
-                        Log.d("Sandy's error",firebaseError.getMessage());
+                        Log.d("----------Sandy's error",firebaseError.getMessage());
+                        onPostExecute(false);
                     }
                 });
+
+
             }catch (Exception e){
-                Log.d("Sandy's error",e.getMessage());
+                return false;
             }
 
            /* try {
@@ -366,7 +388,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
 */
             // TODO: register the new account here.
-            return true;
+            return false;
         }
 
         @Override
@@ -375,7 +397,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
 
             if (success) {
-                finish();
+                //finish();
+                Intent mainActivity = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(mainActivity);
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();

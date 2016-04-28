@@ -19,9 +19,9 @@ public class UserAuth {
     }
 
 
-    public void createUser(String email, String password){
+    public void createUser(String email, String password, Firebase.ValueResultHandler<Map<String, Object>> valueResultHandler){
 
-        ref.createUser("bobtony@firebase.com", "correcthorsebatterystaple", new Firebase.ValueResultHandler<Map<String, Object>>() {
+        ref.createUser(email, password, new Firebase.ValueResultHandler<Map<String, Object>>() {
             @Override
             public void onSuccess(Map<String, Object> result) {
                 System.out.println("Successfully created user account with uid: " + result.get("uid"));
@@ -45,17 +45,7 @@ public class UserAuth {
 
     public void signIn(String email, String password, Firebase.AuthResultHandler authResultHandler){
 
-        ref.authWithPassword(email, password, new Firebase.AuthResultHandler() {
-            @Override
-            public void onAuthenticated(AuthData authData) {
-                System.out.println("User ID: " + authData.getUid() + ", Provider: " + authData.getProvider());
-            }
-
-            @Override
-            public void onAuthenticationError(FirebaseError firebaseError) {
-                // there was an error
-            }
-        });
+        ref.authWithPassword(email, password, authResultHandler);
     }
 
 

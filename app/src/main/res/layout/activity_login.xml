@@ -19,6 +19,7 @@
         android:layout_marginBottom="8dp"
         android:visibility="gone" />
 
+
     <ScrollView
         android:id="@+id/login_form"
         android:layout_width="match_parent"
@@ -63,6 +64,7 @@
 
             </android.support.design.widget.TextInputLayout>
 
+
             <Button
                 android:id="@+id/email_sign_in_button"
                 style="?android:textAppearanceSmall"
@@ -70,9 +72,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/action_sign_in"
-                android:textStyle="bold"
-                android:onClick="signIn"/>
-
+                android:textStyle="bold"/>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

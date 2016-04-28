@@ -51,11 +51,11 @@
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:parentActivityName=".LoginActivity">
-
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".LoginActivity" />
         </activity>
+
 
         <!--
              parentActivityName keeps track of a proper back stack.
@@ -71,6 +71,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+
         <activity
             android:name=".CommentActivity"
             android:label="Comments"
