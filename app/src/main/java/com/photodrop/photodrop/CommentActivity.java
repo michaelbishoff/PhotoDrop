@@ -175,6 +175,16 @@ public class CommentActivity extends AppCompatActivity {
         });
     }
 
+    // TODO: onPause() onResume() listeners and variables
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//
+//        userComment = null;
+//        initialNumComments = 0;
+//        numComments = 0;
+//    }
+
     /**
      * Handles the onClick event when the back button is selected. Returns to the MapsActivity.
      * @return true - we handled the item selected event
