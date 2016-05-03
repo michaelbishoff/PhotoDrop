@@ -9,21 +9,7 @@
 
     <!-- This is equivalent to including the fragment directly like below -->
     <include layout="@layout/activity_maps" />
-    <!--<fragment-->
-    <!--android:id="@+id/map"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent"-->
-    <!--android:name="com.photodrop.photodrop.MapsActivity" />-->
 
     <!-- Can overlay content with content_main -->
     <include layout="@layout/content_main" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_menu_camera" />
-
 </android.support.design.widget.CoordinatorLayout>

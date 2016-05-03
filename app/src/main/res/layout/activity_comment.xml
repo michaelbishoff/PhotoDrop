@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.photodrop.photodrop.CommentActivity">
+    tools:context="com.photodrop.photodrop.CommentActivity"
+    android:background="@color/cloudGreen">
 
     <!--android:layout_width="match_parent"-->
     <!--android:layout_height="match_parent"-->
@@ -27,7 +28,8 @@
 
     <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/mountainGreen">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -37,9 +39,9 @@
             android:paddingRight="8dp"
             android:id="@+id/messageBox"
             android:baselineAligned="false"
-            android:background="#E0E0E0"
             android:descendantFocusability="beforeDescendants"
             android:focusableInTouchMode="true">
+            <!--android:background="#E0E0E0"-->
 
             <EditText
                 android:layout_width="0dp"
@@ -52,14 +54,15 @@
                 android:textSize="16sp"
                 android:maxLines="4"
                 android:scrollbars="vertical"
-                android:inputType="textShortMessage|textMultiLine" />
+                android:inputType="textShortMessage|textMultiLine"/>
 
             <Button
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:id="@+id/buttonSend"
-                android:text="@string/send_comment_text" />
+                android:text="@string/send_comment_text"
+                android:background="@color/mountainGreen"/>
 
         </LinearLayout>
 

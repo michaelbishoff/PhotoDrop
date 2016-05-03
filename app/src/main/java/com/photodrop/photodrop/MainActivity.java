@@ -32,9 +32,7 @@ import com.firebase.geofire.GeoLocation;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, MapsActivity.LocationDataTransfer {
 
     // UI Buttons
-    private FloatingActionButton fab;
-    private ImageButton profileButton;
-    private FloatingActionButton compassButton;
+    private ImageButton profileButton, cameraButton, settingsButton;
     private static final int CAMERA_REQUEST = 1000;
     private static final int IMAGE_QUALITY = 1;
 
@@ -67,9 +65,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        setSupportActionBar(toolbar);
 
         // Gets the UI elements
-        fab = (FloatingActionButton) findViewById(R.id.fab);
+        cameraButton = (ImageButton) findViewById(R.id.cameraButton);
         profileButton = (ImageButton) findViewById(R.id.profileButton);
-        compassButton = (FloatingActionButton) findViewById(R.id.compassButton);
+        settingsButton = (ImageButton) findViewById(R.id.settingsButtons);
 
         // Gets the Map Fragment so we can call setLocation()
         mapsActivity = (MapsActivity) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -89,9 +87,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
 
-        fab.setOnClickListener(this);
+        cameraButton.setOnClickListener(this);
         profileButton.setOnClickListener(this);
-        compassButton.setOnClickListener(this);
+        settingsButton.setOnClickListener(this);
 
         // Binds the service. Calls the onServiceConnected() method below
         Intent serviceIntent = new Intent(this, LocationService.class);
@@ -104,9 +102,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPause() {
         super.onPause();
-        fab.setOnClickListener(null);
+        cameraButton.setOnClickListener(null);
         profileButton.setOnClickListener(null);
-        compassButton.setOnClickListener(null);
+        settingsButton.setOnClickListener(null);
 
         // This may be redundant since we're unbinding the service immediately after
         if (connected) {
@@ -125,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
 
         switch (v.getId()) {
-            case R.id.fab:
+            case R.id.cameraButton:
 
                 // Open the camera and take a picture
                 Intent cameraIntent = new Intent();
@@ -143,8 +141,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             // Sets the maps center when the user presses the compass button
-            case R.id.compassButton:
-                mapsActivity.setLocation(locationService.getUserLocation());
+            case R.id.settingsButtons:
+//                mapsActivity.setLocation(locationService.getUserLocation());
                 break;
         }
     }

@@ -37,6 +37,12 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image);
 
+        // Sets the UI flags so that the layout is fullscreen. This makes the
+        // background picture full screen.
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+
         // Gets the Image View
         imageView = (ImageView) findViewById(R.id.imageView);
 
