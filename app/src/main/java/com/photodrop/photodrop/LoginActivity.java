@@ -30,6 +30,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
@@ -69,8 +70,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         //Firebase context
         Firebase.setAndroidContext(this);
-
+        Log.d("ME", "In LoginActivity onCreate()");
         userAuth = new UserAuth();
+
         if(userAuth.isLoggedIn()){
             Intent mainView = new Intent(this, MainActivity.class);
             startActivity(mainView);
@@ -354,34 +356,51 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     @Override
                     public void onAuthenticationError(FirebaseError firebaseError) {
                         Log.d("--XXXXXX-Sandy's error",firebaseError.getMessage());
-                        // mPasswordView.setError(getString(R.string.error_incorrect_password));
-                        mPasswordView.setError(getString(R.string.error_no_account_found));
-                        mPasswordView.requestFocus();
 
+                        switch (firebaseError.getCode()) {
+
+                            // If the user doesn't exist, make a new user
+                            case FirebaseError.USER_DOES_NOT_EXIST:
+                                Log.d("Sandy", "Creating user: " + mEmail);
+
+                                userAuth.createUser(mEmail, mPassword, new Firebase.ValueResultHandler<Map<String, Object>>() {
+                                    @Override
+                                    public void onSuccess(Map<String, Object> stringObjectMap) {
+                                        Log.d("Sandy OKOKOKOKOK", stringObjectMap.toString());
+//                                        Toast.makeText(LoginActivity.this, "Created User", Toast.LENGTH_SHORT).show();
+
+                                        Intent mainActivity = new Intent(LoginActivity.this, MainActivity.class);
+                                        startActivity(mainActivity);
+
+                                    }
+
+                                    @Override
+                                    public void onError(FirebaseError firebaseError) {
+                                        Log.d("--XXXXXX-Sandy's error", firebaseError.getMessage());
+                                        Toast.makeText(LoginActivity.this, "Couldn't create account", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                                break;
+
+                            // Display an Invalid Email message
+                            case FirebaseError.INVALID_EMAIL:
+                                mEmailView.setError(getString(R.string.error_invalid_email));
+                                mEmailView.requestFocus();
+                                break;
+
+                            // Display an Invalid Password message
+                            case FirebaseError.INVALID_PASSWORD:
+                                mPasswordView.setError(getString(R.string.error_incorrect_password));
+                                mPasswordView.requestFocus();
+                                break;
+                        }
                     }
                 });
 
 
-            }catch (Exception e){
+            } catch (Exception e){
                 return false;
             }
-
-            // TODO: register the new account here.
-            userAuth.createUser(mEmail, mPassword, new Firebase.ValueResultHandler<Map<String, Object>>() {
-                @Override
-                public void onSuccess(Map<String, Object> stringObjectMap) {
-                    Log.d("Sandy OKOKOKOKOK", stringObjectMap.toString());
-                    Intent mainActivity = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(mainActivity);
-
-                }
-
-                @Override
-                public void onError(FirebaseError firebaseError) {
-                    Log.d("--XXXXXX-Sandy's error",firebaseError.getMessage());
-
-                }
-            });
             return false;
         }
 

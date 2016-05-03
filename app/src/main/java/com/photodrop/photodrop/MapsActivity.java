@@ -57,7 +57,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
     private GeoQuery closeRangeGeoQuery;
     private boolean nearImagesAdded = false;
     private static final double QUERY_RADIUS = 0.2;
-    private static final double MAX_QUERY_RADIUS = 1;
+    private static final double MAX_QUERY_RADIUS = 0.2;
 
     // The main activity so we can get the user's location
     private MainActivity mainActivity;

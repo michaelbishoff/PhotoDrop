@@ -20,6 +20,7 @@ import com.firebase.client.ValueEventListener;
 
 // TODO: Use this to make transparent action bar: http://stackoverflow.com/questions/26505632/how-to-make-toolbar-transparent
 // http://stackoverflow.com/questions/25723331/display-and-hide-navigationbar-and-actionbar-onclickandroid
+// TODO: Add a loading icon like the login page
 public class ImageActivity extends AppCompatActivity implements ValueEventListener, View.OnClickListener {
 
     // UI Elements

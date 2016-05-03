@@ -7,30 +7,40 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.firebase.client.Firebase;
+
 public class SettingsActivity extends AppCompatActivity implements View.OnClickListener {
 
-    Button changePassword;
+    private Button changePasswordButton, logoutButton;
+    private UserAuth userAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        changePassword = (Button) findViewById(R.id.changePasswordButton);
+        // Firebase Context for logout
+        Firebase.setAndroidContext(this);
+        userAuth = new UserAuth();
+
+        changePasswordButton = (Button) findViewById(R.id.changePasswordButton);
+        logoutButton = (Button) findViewById(R.id.logoutButton);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        changePassword.setOnClickListener(this);
+        changePasswordButton.setOnClickListener(this);
+        logoutButton.setOnClickListener(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        changePassword.setOnClickListener(null);
+        changePasswordButton.setOnClickListener(null);
+        logoutButton.setOnClickListener(null);
     }
 
     /**
@@ -55,6 +65,20 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             case R.id.changePasswordButton:
                 Intent changePasswordIntent = new Intent(SettingsActivity.this, ChangePasswordActivity.class);
                 startActivity(changePasswordIntent);
+                break;
+
+            case R.id.logoutButton:
+                // TODO: Delete this because I'm testing it right now
+                userAuth.isLoggedIn();
+
+                // Logs the user out
+                userAuth.logOut();
+
+                // Changes to the logout screen and removes the back stack
+                Intent logoutIntent = new Intent(this, LoginActivity.class);
+                logoutIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(logoutIntent);
+
                 break;
         }
     }

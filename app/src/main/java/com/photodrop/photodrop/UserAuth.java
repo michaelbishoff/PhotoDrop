@@ -1,5 +1,7 @@
 package com.photodrop.photodrop;
 
+import android.util.Log;
+
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.AuthData;
@@ -19,17 +21,19 @@ public class UserAuth {
     }
 
 
-    public void createUser(String email, String password, Firebase.ValueResultHandler<Map<String, Object>> valueResultHandler){
+    public void createUser(String email, String password, final Firebase.ValueResultHandler<Map<String, Object>> valueResultHandler){
 
         ref.createUser(email, password, new Firebase.ValueResultHandler<Map<String, Object>>() {
             @Override
             public void onSuccess(Map<String, Object> result) {
                 System.out.println("Successfully created user account with uid: " + result.get("uid"));
+                valueResultHandler.onSuccess(result);
             }
 
             @Override
             public void onError(FirebaseError firebaseError) {
                 // there was an error
+                valueResultHandler.onError(firebaseError);
             }
         });
     }
@@ -37,8 +41,10 @@ public class UserAuth {
 
     public boolean isLoggedIn(){
         AuthData authData = ref.getAuth();
-        if(authData != null)
+        if(authData != null) {
+            Log.d("Sandy", "uid = " + ref.getAuth().getUid());
             return true;
+        }
         else
             return false;
     }

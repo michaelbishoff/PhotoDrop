@@ -116,63 +116,7 @@ public class CommentActivity extends AppCompatActivity {
         });
 
         // Loads in new comments as they come in
-        comments.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
-                // Hides the "No Comments" text when a new comment is added and
-                // there was no comments initially
-                if (noCommentsText.getVisibility() != View.GONE) {
-                    noCommentsText.setVisibility(View.GONE);
-                }
-
-                String comment = dataSnapshot.getValue(String.class);
-                mComments.add(comment);
-
-                // Updates the UI
-                mAdapter.notifyDataSetChanged();
-
-                // If the user made the comment, go to the bottom
-                if (comment.equals(userComment)) {
-                    mListView.setSelection(mAdapter.getCount());
-
-                    // If we loaded all of the comments, then there is a new comment
-                    // at the bottom from a different user
-                } else if (initialNumComments == numComments) {
-                    Toast.makeText(CommentActivity.this, "New Comment", Toast.LENGTH_SHORT).show();
-//                    Snackbar.make(findViewById(R.id.listView), "New Comment",
-//                            Snackbar.LENGTH_LONG).setAction("Action", null).show();
-
-                    // TODO: Want to make our own SnackBar like element that appears above the messageBox
-//                    TranslateAnimation animation = new TranslateAnimation(0,0,0,-1000);
-//                    animation.setDuration(500);
-//                    animation.setFillAfter(true);
-//                    animation.setRepeatCount(-1);
-//                    animation.setRepeatMode(Animation.REVERSE);
-//                    findViewById(R.id.mySnackBar).setAnimation(animation);
-
-
-                    // Counts how many comments we have loaded to figure out when
-                    // new comments are coming in
-                } else {
-                    numComments++;
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) { }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) { }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) { }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                Log.e("FirebaseError", firebaseError.getDetails());
-            }
-        });
+        comments.orderByPriority().addChildEventListener(new CommentsChildEventListener());
     }
 
     // TODO: onPause() onResume() listeners and variables
@@ -240,6 +184,73 @@ public class CommentActivity extends AppCompatActivity {
         @Override
         public void onComplete(FirebaseError firebaseError, boolean commited, DataSnapshot dataSnapshot) {
             Log.d("ME", "Updating num_comments to " + dataSnapshot.getValue());
+        }
+    }
+
+    /**
+     * Loads the comments from Firebase. Keeps track of new comments that come in so that a Toast
+     * can be shown when other comments come in while the user is on the Comments page.
+     */
+    private class CommentsChildEventListener implements ChildEventListener {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+            // Hides the "No Comments" text when a new comment is added and
+            // there was no comments initially
+            if (noCommentsText.getVisibility() != View.GONE) {
+                noCommentsText.setVisibility(View.GONE);
+            }
+
+            String comment = dataSnapshot.getValue(String.class);
+            mComments.add(comment);
+
+            // Updates the UI
+            mAdapter.notifyDataSetChanged();
+            Log.d("ME", "comment == " + comment);
+            Log.d("ME", "userComment == " + userComment);
+            Log.d("ME", "Comments ==? " + comment.equals(userComment));
+            // If the user made the comment, go to the bottom
+            if (comment.equals(userComment)) {
+                mListView.setSelection(mAdapter.getCount());
+                initialNumComments++;
+                numComments++;
+
+                // If we loaded all of the comments, then there is a new comment
+                // at the bottom from a different user
+            } else if (initialNumComments != 0 && initialNumComments == numComments) {
+                Log.d("ME", "Making toast when comment == " + comment);
+                Toast.makeText(CommentActivity.this, "New Comment", Toast.LENGTH_SHORT).show();
+//                    Snackbar.make(findViewById(R.id.listView), "New Comment",
+//                            Snackbar.LENGTH_LONG).setAction("Action", null).show();
+
+                // TODO: Want to make our own SnackBar like element that appears above the messageBox
+//                    TranslateAnimation animation = new TranslateAnimation(0,0,0,-1000);
+//                    animation.setDuration(500);
+//                    animation.setFillAfter(true);
+//                    animation.setRepeatCount(-1);
+//                    animation.setRepeatMode(Animation.REVERSE);
+//                    findViewById(R.id.mySnackBar).setAnimation(animation);
+
+
+                // Counts how many comments we have loaded to figure out when
+                // new comments are coming in
+            } else {
+                numComments++;
+            }
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) { }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) { }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) { }
+
+        @Override
+        public void onCancelled(FirebaseError firebaseError) {
+            Log.e("FirebaseError", firebaseError.getDetails());
         }
     }
 }
