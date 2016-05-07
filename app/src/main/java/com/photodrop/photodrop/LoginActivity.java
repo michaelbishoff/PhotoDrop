@@ -3,7 +3,9 @@ package com.photodrop.photodrop;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
@@ -63,7 +65,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-    private UserAuth userAuth;
+    public static UserAuth userAuth;
     //Button signupButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -354,6 +356,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         UserLoginTask(String email, String password) {
             mEmail = email;
             mPassword = password;
+
         }
 
         @Override
@@ -363,7 +366,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 userAuth.signIn(mEmail,mPassword,new Firebase.AuthResultHandler(){
                     @Override
                     public void onAuthenticated(AuthData authData) {
+
                         Log.d("Sandy OKOKOKOKOK", authData.toString());
+                        saveUserID();
                         Intent mainActivity = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(mainActivity);
                         finish();
@@ -384,7 +389,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                     public void onSuccess(Map<String, Object> stringObjectMap) {
                                         Log.d("Sandy OKOKOKOKOK", stringObjectMap.toString());
 //                                        Toast.makeText(LoginActivity.this, "Created User", Toast.LENGTH_SHORT).show();
-
+                                        saveUserID();
                                         Intent mainActivity = new Intent(LoginActivity.this, MainActivity.class);
                                         startActivity(mainActivity);
                                         finish();
@@ -440,5 +445,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
         }
+
+        public void saveUserID()
+        {
+            SharedPreferences sharedPref = LoginActivity.this.getPreferences(Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("UID", userAuth.getUID());
+            editor.commit();
+
+        }
+
     }
+
 }

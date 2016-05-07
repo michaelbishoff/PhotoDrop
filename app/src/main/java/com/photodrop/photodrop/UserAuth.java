@@ -59,4 +59,16 @@ public class UserAuth {
         ref.unauth();
     }
 
+    public String getUID()
+    {
+        AuthData authData = ref.getAuth();
+        if(authData != null) {
+            Log.d("Sandy", "uid = " + ref.getAuth().getUid());
+            return authData.getUid();
+        }
+        else
+            return null;
+
+    }
+
 }
