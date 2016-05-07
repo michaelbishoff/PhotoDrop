@@ -45,7 +45,7 @@ public class LocationService extends Service implements LocationListener {
     }
 
     /* LocationListener Methods */
-
+    // TODO: Move query radius when location changes and add isBetterLocation()
     @Override
     public void onLocationChanged(Location location) { }
 
