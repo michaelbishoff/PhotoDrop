@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.NavUtils;
@@ -210,8 +211,14 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
         return super.onOptionsItemSelected(item);
     }
     public String getUserID() {
-        SharedPreferences sharedPref = ProfileActivity.this.getPreferences(Context.MODE_PRIVATE);
-        String userIDNow = sharedPref.getString("UID", null);
+        //SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+       // String userIDNow = PreferenceManager.getDefaultSharedPreferences();
+        //String userIDNow = sharedPref.getString("UID", null);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        String userIDNow = preferences.getString("UID", null);
+
+        System.out.println("UID------------------" + userIDNow);
 
         return userIDNow;
     }

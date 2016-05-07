@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -448,12 +449,28 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         public void saveUserID()
         {
-            SharedPreferences sharedPref = LoginActivity.this.getPreferences(Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPref.edit();
+            //SharedPreferences sharedPref = LoginActivity.this.getPreferences(Context.MODE_PRIVATE);
+            //SharedPreferences.Editor editor = sharedPref.edit();
+            //editor.putString("UID", userAuth.getUID());
+            //editor.commit();
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            SharedPreferences.Editor editor = prefs.edit();
             editor.putString("UID", userAuth.getUID());
             editor.commit();
 
+
+          //  System.out.println("-------------------"+getUserID());
+
         }
+/*
+        public String getUserID() {
+            SharedPreferences sharedPref = LoginActivity.this.getPreferences(Context.MODE_PRIVATE);
+            String userIDNow = sharedPref.getString("UID", null);
+
+
+            return userIDNow;
+        }*/
 
     }
 
