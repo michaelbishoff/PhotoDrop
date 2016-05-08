@@ -61,7 +61,7 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         numLikesText = (TextView) findViewById(R.id.numLikes);
     }
 
-    @Overridea
+    @Override
     protected void onResume() {
         super.onResume();
 
