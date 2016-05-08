@@ -142,6 +142,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // Sets the maps center when the user presses the compass button
             case R.id.settingsButtons:
+
+                //Switch to settings page
+                Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(settingsIntent);
 //                mapsActivity.setLocation(locationService.getUserLocation());
                 break;
         }
