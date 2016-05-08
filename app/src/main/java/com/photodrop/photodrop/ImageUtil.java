@@ -1,6 +1,7 @@
 package com.photodrop.photodrop;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -102,6 +103,71 @@ public class ImageUtil {
         byteArrayOutputStream = null;
 
         return Base64.encodeToString(byteArray, Base64.DEFAULT);
+    }
+
+
+    /**
+     * calculate a sample size value that is a power of two based on a target width and height
+     * http://developer.android.com/intl/zh-tw/training/displaying-bitmaps/load-bitmap.html#load-bitmap
+     * @param options - BitmapFactory.Options
+     * @param reqWidth - int
+     * @param reqHeight - int
+     */
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
+    }
+
+
+    /**
+     * calculate a sample size value that is a power of two based on a target width and height
+     * http://developer.android.com/intl/zh-tw/training/displaying-bitmaps/load-bitmap.html#load-bitmap
+     * @param encodedImage - encoded image
+     * @param reqWidth - int
+     * @param reqHeight - int
+     */
+    //public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
+    //                                                     int reqWidth, int reqHeight) {
+    public static Bitmap decodeSampledBitmapFromResource(String encodedImage,
+                                                     int reqWidth, int reqHeight) {
+
+        Bitmap bitmap = null;
+
+        // First decode with inJustDecodeBounds=true to check dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        //BitmapFactory.decodeResource(res, resId, options);
+        if (encodedImage != null) {
+            // Decodes the image
+            byte[] decodedImage = Base64.decode(encodedImage, Base64.DEFAULT);
+            BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length, options);
+            // Calculate inSampleSize
+            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+            // Decode bitmap with inSampleSize set
+            options.inJustDecodeBounds = false;
+            bitmap = BitmapFactory.decodeByteArray(decodedImage, 0,
+                                                    decodedImage.length, options);
+        }
+        return bitmap;
     }
 
 }
