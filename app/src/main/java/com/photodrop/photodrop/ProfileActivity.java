@@ -1,5 +1,6 @@
 package com.photodrop.photodrop;
 
+import android.app.admin.SystemUpdatePolicy;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -81,12 +82,12 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
         // imageKey = "-KF2ii44GF_lLh8lNpOG";//getIntent().getStringExtra(MapsActivity.IMAGE_KEY);
 
         imageKeys = new ArrayList<>();
-
-        userKey = SharedPrefUtil.getUserID(this);
-        if(userKey == null) {
-            throw new RuntimeException("\n\n T_T Len userKey is null!!!\n\n");
-        }
-        
+        userKey = "michaelbishoff";
+        //userKey = SharedPrefUtil.getUserID(this);
+        //if(userKey == null) {
+          //  throw new RuntimeException("\n\n T_T Len userKey is null!!!\n\n");
+        //}
+        //System.out.prinln("\n "+ +" \n");
         user = new Firebase(FIREBASE_USER_URL+"/"+userKey+PHOTO_URL);
         System.out.println("  \n\n   >_<     "+userKey+"\n");
         System.out.print("!!!!!!!!!!!!^_^ "+user.getPath()+"\n");

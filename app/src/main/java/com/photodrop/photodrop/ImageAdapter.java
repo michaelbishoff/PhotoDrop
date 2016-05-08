@@ -5,6 +5,7 @@ package com.photodrop.photodrop;
  */
 import android.app.*;
 import android.os.*;
+import android.util.DisplayMetrics;
 import android.widget.*;
 import java.util.*;
 import android.graphics.*;
@@ -17,6 +18,7 @@ public class ImageAdapter extends BaseAdapter {
     private ArrayList<Bitmap> bitmapList;
     public static final int CROP_WIDTH = 220;
     public static final int CROP_HEIGHT = CROP_WIDTH;
+
 
     public ImageAdapter(Context context, ArrayList<Bitmap> bitmapList) {
         this.context = context;
@@ -36,12 +38,18 @@ public class ImageAdapter extends BaseAdapter {
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
+        DisplayMetrics dm = context.getResources().getDisplayMetrics();
+        float dd = dm.density;  //取出密度
+        float px = 25 * dd;  //像素 = dp * 密度
+        float screenWidth = dm.widthPixels;  //取出螢幕寬度
+        int newWidth = (int) (screenWidth - px) / 4; // 一行顯示四個縮圖
         ImageView imageView;
         if (convertView == null) {
             imageView = new ImageView(this.context);
             // Crops the photo
-            imageView.setLayoutParams(new GridView.LayoutParams(CROP_WIDTH, CROP_HEIGHT));
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setLayoutParams(new GridView.LayoutParams(newWidth, newWidth));
+            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            //imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         } else {
             imageView = (ImageView) convertView;
         }
