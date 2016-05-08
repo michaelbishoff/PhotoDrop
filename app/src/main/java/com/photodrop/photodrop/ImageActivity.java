@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,7 +26,7 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
 
     // UI Elements
     private ImageView imageView;
-    private Button likeButton, commentButton, flagButton;
+    private ImageButton likeButton, commentButton, flagButton;
     private TextView numLikesText;
 
     // Firebase Objects
@@ -54,9 +55,9 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         setImageData();
 
         // Gets the UI elements
-        likeButton = (Button) findViewById(R.id.likeButton);
-        commentButton = (Button) findViewById(R.id.commentButton);
-        flagButton = (Button) findViewById(R.id.flagButton);
+        likeButton = (ImageButton) findViewById(R.id.likeButton);
+        commentButton = (ImageButton) findViewById(R.id.commentButton);
+        flagButton = (ImageButton) findViewById(R.id.flagButton);
         numLikesText = (TextView) findViewById(R.id.numLikes);
     }
 
