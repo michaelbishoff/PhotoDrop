@@ -38,11 +38,21 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
     public Firebase user;
     private String imageKey;
     private String userKey;
+    private ImageAdapter myImageAdapter;
     public static final String FIREBASE_URL = "https://photodrop-umbc.firebaseio.com/";
     public static final String FIREBASE_IMAGES_URL = FIREBASE_URL + "images";
     public static final String FIREBASE_USER_URL = FIREBASE_URL + "users";
     public static final String IMAGE_URL = "/image";
     public static final String PHOTO_URL= "/photos";
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        bitmapList = null;
+        myImageAdapter = null;
+        imageGrid = null;
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,15 +70,17 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
         // Initializes the Firebase references
         Firebase.setAndroidContext(this);
         images = new Firebase(FIREBASE_IMAGES_URL);
-
+        myImageAdapter = new ImageAdapter(this, this.bitmapList);
+        imageGrid.setAdapter(myImageAdapter);
         // Sets the image with the corresponding image key that was passed to this activity
         imageKey = "-KF2ii44GF_lLh8lNpOG";//getIntent().getStringExtra(MapsActivity.IMAGE_KEY);
 
-        userKey = getUserID();
-        if(userKey == null) {
-            throw new RuntimeException("\n\n T_T Len userKey is null!!!\n\n");
+        userKey = "michaelbishoff";
+        //userKey = getUserID();
+        //if(userKey == null) {
+          //  throw new RuntimeException("\n\n T_T Len userKey is null!!!\n\n");
             //userKey = "michaelbishoff";
-        }
+        //}
         user = new Firebase(FIREBASE_USER_URL+"/"+userKey+PHOTO_URL);
         System.out.println("  \n\n   >_<     "+userKey+"\n");
         System.out.print("!!!!!!!!!!!!^_^ "+user.getPath()+"\n");
@@ -163,17 +175,23 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
 
             if (key.equals("image")) {
                 Log.d("ME", "Getting image from: " + dataSnapshot.getRef().getPath());
-                Bitmap bitmap = ImageUtil.getBitmapFromEncodedImage(
-                        (String) dataSnapshot.getValue());
+                //Bitmap bitmap = ImageUtil.getBitmapFromEncodedImage(
+                //        (String) dataSnapshot.getValue());
+                Bitmap bitmap = ImageUtil.decodeSampledBitmapFromResource(
+                        (String) dataSnapshot.getValue(), 200, 200);
                 // Sets the image
                 bitmapList.add(bitmap);
-                imageGrid.setAdapter(new ImageAdapter(this, this.bitmapList));
+                //imageGrid.setAdapter(new ImageAdapter(this, this.bitmapList));
+                //imageGrid.setAdapter(myImageAdapter);
+                myImageAdapter.notifyDataSetChanged();
             }
         }
     }
 
     @Override
-    public void onCancelled(FirebaseError firebaseError) { }
+    public void onCancelled(FirebaseError firebaseError) {
+        throw new RuntimeException("\n\n T_T Len onCancelled()!!!\n\n"+firebaseError.getMessage());
+    }
     /**
      * Associates the menu_profile with this activity's menu
      */
