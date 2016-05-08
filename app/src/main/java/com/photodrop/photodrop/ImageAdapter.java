@@ -15,6 +15,8 @@ public class ImageAdapter extends BaseAdapter {
 
     private Context context;
     private ArrayList<Bitmap> bitmapList;
+    public static final int CROP_WIDTH = 220;
+    public static final int CROP_HEIGHT = CROP_WIDTH;
 
     public ImageAdapter(Context context, ArrayList<Bitmap> bitmapList) {
         this.context = context;
@@ -37,7 +39,8 @@ public class ImageAdapter extends BaseAdapter {
         ImageView imageView;
         if (convertView == null) {
             imageView = new ImageView(this.context);
-            imageView.setLayoutParams(new GridView.LayoutParams(220, 220));
+            // Crops the photo
+            imageView.setLayoutParams(new GridView.LayoutParams(CROP_WIDTH, CROP_HEIGHT));
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         } else {
             imageView = (ImageView) convertView;
@@ -46,5 +49,4 @@ public class ImageAdapter extends BaseAdapter {
         imageView.setImageBitmap(this.bitmapList.get(position));
         return imageView;
     }
-
 }

@@ -37,16 +37,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int IMAGE_QUALITY = 1;
 
     // Firebase Objects
-    public Firebase images;
+    public Firebase images, userPhotos;
     private GeoFire geoFire;
     public static final String FIREBASE_URL = "https://photodrop-umbc.firebaseio.com/";
     public static final String FIREBASE_IMAGES_URL = FIREBASE_URL + "images/";
+    public static final String FIREBASE_USERS_URL = FIREBASE_URL + "users/";
     public static final String GEOFIRE_URL = FIREBASE_URL + "drops";
     // Keys for a specific image, comments, or likes
     public static final String IMAGE_URL = "/image";
     public static final String COMMENTS_URL = "/comments";
     public static final String LIKES_URL = "/likes";
     public static final String NUM_COMMENTS_URL = "/num_comments";
+    public static final String USER_PHOTOS_URL = "/photos";
 
     // Service Objects
     private LocationService.LocationServiceBinder binder;
@@ -75,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Initializes the Firebase references
         Firebase.setAndroidContext(this);
         images = new Firebase(FIREBASE_IMAGES_URL);
+        userPhotos = new Firebase(String.format("%s%s%s", FIREBASE_USERS_URL, SharedPrefUtil.getUserID(this), USER_PHOTOS_URL));
         geoFire = new GeoFire(new Firebase(GEOFIRE_URL));
 
         Log.d("ME-MainActivity-DO", "Done onCreate()");
@@ -205,6 +208,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Saves the location of the drop and saves the image with the same key
             geoFire.setLocation(imageKey, new GeoLocation(location.getLatitude(), location.getLongitude()));
             images.child(imageKey + IMAGE_URL).setValue(ImageUtil.encodeBitmap(bitmap, IMAGE_QUALITY));
+            userPhotos.child(imageKey).setValue(1);
 
             // Frees up some memory (i think lol)
             imageKey = null;

@@ -368,7 +368,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     public void onAuthenticated(AuthData authData) {
 
                         Log.d("Sandy OKOKOKOKOK", authData.toString());
-                        saveUserID();
+                        // Saves the user ID to Shared Preferences
+                        SharedPrefUtil.saveUserID(LoginActivity.this, userAuth.getUID());
+
                         Intent mainActivity = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(mainActivity);
                         finish();
@@ -389,7 +391,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                     public void onSuccess(Map<String, Object> stringObjectMap) {
                                         Log.d("Sandy OKOKOKOKOK", stringObjectMap.toString());
 //                                        Toast.makeText(LoginActivity.this, "Created User", Toast.LENGTH_SHORT).show();
-                                        saveUserID();
+                                        // Saves the user ID to Shared Preferences
+                                        SharedPrefUtil.saveUserID(LoginActivity.this, userAuth.getUID());
+
                                         Intent mainActivity = new Intent(LoginActivity.this, MainActivity.class);
                                         startActivity(mainActivity);
                                         finish();
@@ -445,32 +449,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
         }
-
-        public void saveUserID()
-        {
-            //SharedPreferences sharedPref = LoginActivity.this.getPreferences(Context.MODE_PRIVATE);
-            //SharedPreferences.Editor editor = sharedPref.edit();
-            //editor.putString("UID", userAuth.getUID());
-            //editor.commit();
-
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("UID", userAuth.getUID());
-            editor.commit();
-
-
-          //  System.out.println("-------------------"+getUserID());
-
-        }
-/*
-        public String getUserID() {
-            SharedPreferences sharedPref = LoginActivity.this.getPreferences(Context.MODE_PRIVATE);
-            String userIDNow = sharedPref.getString("UID", null);
-
-
-            return userIDNow;
-        }*/
-
     }
 
 }

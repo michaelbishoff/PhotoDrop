@@ -1,23 +1,18 @@
 package com.photodrop.photodrop;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.preference.PreferenceManager;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.AdapterView;
 
 import android.widget.GridView;
 
@@ -32,27 +27,22 @@ import java.net.URL;
 import java.util.ArrayList;
 
 public class ProfileActivity extends AppCompatActivity implements ValueEventListener {
+
     private GridView imageGrid;
     private ArrayList<Bitmap> bitmapList;
     public Firebase images;
     public Firebase user;
-    private String imageKey;
     private String userKey;
     private ImageAdapter myImageAdapter;
+    private ArrayList<String> imageKeys;
     public static final String FIREBASE_URL = "https://photodrop-umbc.firebaseio.com/";
     public static final String FIREBASE_IMAGES_URL = FIREBASE_URL + "images";
     public static final String FIREBASE_USER_URL = FIREBASE_URL + "users";
     public static final String IMAGE_URL = "/image";
     public static final String PHOTO_URL= "/photos";
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        bitmapList = null;
-        myImageAdapter = null;
-        imageGrid = null;
-
-    }
+    private static final int RESOLUTION_WIDTH = 200;
+    private static final int RESOLUTION_HEIGHT = RESOLUTION_WIDTH;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +54,11 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
         // Adds the back button to the toolbar since we're adding it dynamically
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         System.out.print(">_<\n\n");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         this.imageGrid = (GridView) findViewById(R.id.profileActivityGridview);
         this.bitmapList = new ArrayList<Bitmap>();
@@ -71,16 +66,27 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
         Firebase.setAndroidContext(this);
         images = new Firebase(FIREBASE_IMAGES_URL);
         myImageAdapter = new ImageAdapter(this, this.bitmapList);
-        imageGrid.setAdapter(myImageAdapter);
-        // Sets the image with the corresponding image key that was passed to this activity
-        imageKey = "-KF2ii44GF_lLh8lNpOG";//getIntent().getStringExtra(MapsActivity.IMAGE_KEY);
 
-        userKey = "michaelbishoff";
-        //userKey = getUserID();
-        //if(userKey == null) {
-          //  throw new RuntimeException("\n\n T_T Len userKey is null!!!\n\n");
-            //userKey = "michaelbishoff";
-        //}
+        imageGrid.setAdapter(myImageAdapter);
+        imageGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent openImageIntent = new Intent(ProfileActivity.this, ImageActivity.class);
+                openImageIntent.putExtra(MapsActivity.IMAGE_KEY, imageKeys.get(position));
+                startActivity(openImageIntent);
+            }
+        });
+
+        // Sets the image with the corresponding image key that was passed to this activity
+        // imageKey = "-KF2ii44GF_lLh8lNpOG";//getIntent().getStringExtra(MapsActivity.IMAGE_KEY);
+
+        imageKeys = new ArrayList<>();
+
+        userKey = SharedPrefUtil.getUserID(this);
+        if(userKey == null) {
+            throw new RuntimeException("\n\n T_T Len userKey is null!!!\n\n");
+        }
+        
         user = new Firebase(FIREBASE_USER_URL+"/"+userKey+PHOTO_URL);
         System.out.println("  \n\n   >_<     "+userKey+"\n");
         System.out.print("!!!!!!!!!!!!^_^ "+user.getPath()+"\n");
@@ -90,8 +96,11 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
             @Override
             public void onChildAdded(DataSnapshot snapshot, String previousChild) {
                 System.out.println(">>>>>>>>>>>>>>>>>>>>"+snapshot.getKey()+"\n");
-                imageKey = snapshot.getKey();
-                setImageData();
+
+                // Adds the key to the end
+                imageKeys.add(imageKeys.size(), snapshot.getKey());
+
+                setImageData(snapshot.getKey());
             }
 
             @Override
@@ -131,8 +140,16 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        bitmapList = null;
+        myImageAdapter = null;
+        imageGrid = null;
+    }
+
     private Bitmap urlImageToBitmap(String imageUrl) throws Exception {
         Bitmap result = null;
         URL url = new URL(imageUrl);
@@ -152,7 +169,7 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
     /**
      * Sets the image view with the image with the corresponding key in Firebase
      */
-    public void setImageData() {
+    public void setImageData(String imageKey) {
         //Log.d("ME", "Adding listener to: " + images.child(imageKey).getPath().toString());
         Log.d("Len", "Adding listener to: " + user.child(userKey).getPath().toString());
         // TODO: Should probably save the image locally and check if the image is saved before accessing the DB again
@@ -175,10 +192,10 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
 
             if (key.equals("image")) {
                 Log.d("ME", "Getting image from: " + dataSnapshot.getRef().getPath());
-                //Bitmap bitmap = ImageUtil.getBitmapFromEncodedImage(
-                //        (String) dataSnapshot.getValue());
-                Bitmap bitmap = ImageUtil.decodeSampledBitmapFromResource(
-                        (String) dataSnapshot.getValue(), 200, 200);
+
+                // Decodes the image and makes it a smaller resolution size
+                Bitmap bitmap = ImageUtil.decodeSampledBitmap(
+                        (String) dataSnapshot.getValue(), RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
                 // Sets the image
                 bitmapList.add(bitmap);
                 //imageGrid.setAdapter(new ImageAdapter(this, this.bitmapList));
@@ -227,17 +244,5 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-    public String getUserID() {
-        //SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-       // String userIDNow = PreferenceManager.getDefaultSharedPreferences();
-        //String userIDNow = sharedPref.getString("UID", null);
-
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String userIDNow = preferences.getString("UID", null);
-
-        System.out.println("UID------------------" + userIDNow);
-
-        return userIDNow;
     }
 }

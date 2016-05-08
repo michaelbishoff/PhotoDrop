@@ -144,9 +144,9 @@ public class ImageUtil {
      * @param reqWidth - int
      * @param reqHeight - int
      */
-    //public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
+    //public static Bitmap decodeSampledBitmap(Resources res, int resId,
     //                                                     int reqWidth, int reqHeight) {
-    public static Bitmap decodeSampledBitmapFromResource(String encodedImage,
+    public static Bitmap decodeSampledBitmap(String encodedImage,
                                                      int reqWidth, int reqHeight) {
 
         Bitmap bitmap = null;
@@ -158,6 +158,7 @@ public class ImageUtil {
         if (encodedImage != null) {
             // Decodes the image
             byte[] decodedImage = Base64.decode(encodedImage, Base64.DEFAULT);
+            // Sets the width and height in options ??
             BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length, options);
             // Calculate inSampleSize
             options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
