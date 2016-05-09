@@ -26,4 +26,17 @@ public class SharedPrefUtil {
 
         return userID;
     }
+
+    public static void saveCurrentUsersLike(Context context, String imageKey, Boolean liked){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(imageKey, liked);
+        editor.commit();
+    }
+
+    public static Boolean getCurrentUsersLike(Context context, String imageKey){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        Boolean liked = preferences.getBoolean(imageKey,false);
+        return liked;
+    }
 }
