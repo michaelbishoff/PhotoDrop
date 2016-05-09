@@ -3,6 +3,7 @@ package com.photodrop.photodrop;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -28,6 +29,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -66,7 +68,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
     public static UserAuth userAuth;
-    //Button signupButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,7 +99,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
+                if (id == R.id.login || id == EditorInfo.IME_ACTION_DONE) {
                     attemptLogin();
                     return true;
                 }
@@ -215,6 +217,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // form field with an error.
             focusView.requestFocus();
         } else {
+            // Hides the keyboard
+            View view = this.getCurrentFocus();
+            if (view != null) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
@@ -268,22 +277,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
-/*
-    public void signIn(View v){
-        try{
-            if (userAuth.ref.getAuth() != null)
-            {
-                Intent mainView = new Intent(this, MainActivity.class);
-                startActivity(mainView);
-            }
-
-        }
-        catch(Exception e){
-            Log.d("Sandy's Error:", e.getMessage());
-        }
-    }*/
-/*
-   */
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
@@ -361,7 +354,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
             try{
                 userAuth.signIn(mEmail,mPassword,new Firebase.AuthResultHandler(){
                     @Override
@@ -390,7 +382,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                     @Override
                                     public void onSuccess(Map<String, Object> stringObjectMap) {
                                         Log.d("Sandy OKOKOKOKOK", stringObjectMap.toString());
-//                                        Toast.makeText(LoginActivity.this, "Created User", Toast.LENGTH_SHORT).show();
+
                                         // Saves the user ID to Shared Preferences
                                         SharedPrefUtil.saveUserID(LoginActivity.this, userAuth.getUID());
 
@@ -403,6 +395,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                     public void onError(FirebaseError firebaseError) {
                                         Log.d("--XXXXXX-Sandy's error", firebaseError.getMessage());
                                         Toast.makeText(LoginActivity.this, "Couldn't create account", Toast.LENGTH_SHORT).show();
+                                        showProgress(false);
                                     }
                                 });
                                 break;
@@ -411,12 +404,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             case FirebaseError.INVALID_EMAIL:
                                 mEmailView.setError(getString(R.string.error_invalid_email));
                                 mEmailView.requestFocus();
+                                showProgress(false);
                                 break;
 
                             // Display an Invalid Password message
                             case FirebaseError.INVALID_PASSWORD:
                                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                                 mPasswordView.requestFocus();
+                                showProgress(false);
                                 break;
                         }
                     }
@@ -432,16 +427,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
-            showProgress(false);
-            /*
-            if (success) {
-                finish();
-                Intent mainActivity = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(mainActivity);
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }*/
         }
 
         @Override
