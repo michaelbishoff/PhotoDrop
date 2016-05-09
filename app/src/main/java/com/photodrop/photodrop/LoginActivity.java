@@ -11,6 +11,7 @@ import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -115,8 +116,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 attemptLogin();
             }
         });
+
+        // Sets the font of all the UI elements
         Typeface font = Typeface.createFromAsset(this.getAssets(), "fonts/ValterStd-Thin.ttf");
+        mEmailView.setTypeface(font);
+        mPasswordView.setTypeface(font);
+        ((TextInputLayout) mEmailView.getParent()).setTypeface(font);
+        ((TextInputLayout) mPasswordView.getParent()).setTypeface(font);
         mEmailSignInButton.setTypeface(font);
+
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
@@ -239,7 +247,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
-        return password.length() > 4;
+//        return password.length() > 4;
+        return true;
     }
 
     /**

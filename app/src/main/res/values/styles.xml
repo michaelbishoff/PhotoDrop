@@ -37,4 +37,12 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
+    <style name="PlaceholderTheme" parent="Widget.Design.TextInputLayout">
+        <!--<item name="android:textSize">12pt</item>-->
+        <item name="android:textColorHint">@color/red</item>
+
+        <!--<item name="android:colorControlNormal">@color/red</item>-->
+    </style>
+    <!-- TODO: ake a theme for te edit texts-->
+
 </resources>

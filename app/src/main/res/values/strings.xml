@@ -8,10 +8,11 @@
 
 
     <!-- Strings related to login -->
-    <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in or register</string>
-    <string name="action_sign_in_short">Sign in</string>
+    <string name="prompt_email">email</string>
+    <string name="prompt_password">password</string>
+    <string name="login_or_register">login or register</string>
+    <string name="action_sign_in">sign in or register</string>
+    <string name="action_sign_in_short">sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
@@ -27,4 +28,11 @@
     <string name="comment_hint">Write a message...</string>
     <string name="send_comment_text">Send</string>
     <string name="no_comments_text">No Comments</string>
+
+    <!-- String related to changing password -->
+    <string name="new_password">new password</string>
+    <string name="old_password">old password</string>
+    <string name="confirm_new_password">confirm new password</string>
+    <string name="change_password">change password</string>
+    <string name="log_out">log out</string>
 </resources>

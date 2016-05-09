@@ -84,7 +84,7 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
 
         System.out.println("  \n\n   >_<     "+userKey+"\n");
         System.out.print("!!!!!!!!!!!!^_^ "+userPhotos.getPath()+"\n");
-
+        // TODO: Removvevent  steners in onPuase() aadd inResume()b
         Query queryRef = userPhotos.orderByKey();
         queryRef.addChildEventListener(new ChildEventListener() {
             @Override

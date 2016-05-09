@@ -53,9 +53,10 @@
                     android:layout_gravity="center"/>
 
                 <android.support.design.widget.TextInputLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1">
+                    android:layout_weight="1"
+                    android:theme="@style/PlaceholderTheme">
 
                     <AutoCompleteTextView
                         android:id="@+id/email"
@@ -67,7 +68,8 @@
                         android:singleLine="true"
                         android:textColor="@color/white"
                         android:nextFocusForward="@+id/password"
-                        android:imeOptions="actionNext"/>
+                        android:imeOptions="actionNext"
+                        android:textSize="12pt"/>
 
                 </android.support.design.widget.TextInputLayout>
             </LinearLayout>
@@ -87,7 +89,8 @@
 
                 <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:theme="@style/PlaceholderTheme">
 
                     <EditText
                         android:id="@+id/password"
@@ -100,7 +103,8 @@
                         android:inputType="textPassword"
                         android:maxLines="1"
                         android:singleLine="true"
-                        android:textColor="@color/white"/>
+                        android:textColor="@color/white"
+                        android:textSize="12pt"/>
 
                 </android.support.design.widget.TextInputLayout>
             </LinearLayout>
@@ -113,7 +117,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
                 android:textAllCaps="false"
-                android:text="login or register"
+                android:text="@string/login_or_register"
                 android:textSize="12pt"
                 android:background="@color/colorPrimary"
                 android:textColor="@color/white" />

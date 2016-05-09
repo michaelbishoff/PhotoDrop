@@ -1,13 +1,18 @@
 package com.photodrop.photodrop;
 
 import android.content.Context;
+import android.graphics.Typeface;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.AuthData;
@@ -21,24 +26,43 @@ public class ChangePasswordActivity extends AppCompatActivity{
 
 
     //UI
-    Button change;
-    EditText oldpw, newpw, confpw;
-    Firebase ref;
-    Firebase.AuthResultHandler authResultHandler;
-    String email;
-    AuthData authData;
+    private Button change;
+    private EditText oldpw, newpw, confpw;
+    private Firebase ref;
+    private Firebase.AuthResultHandler authResultHandler;
+    private String email;
+    private AuthData authData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_change_password);
 
-
-        newpw = (EditText) findViewById(R.id.editTextNEW);
         oldpw = (EditText) findViewById(R.id.editTextOLD);
+        newpw = (EditText) findViewById(R.id.editTextNEW);
         confpw = (EditText) findViewById(R.id.editTextCONFIRM);
 
+        Typeface font = Typeface.createFromAsset(this.getAssets(), "fonts/ValterStd-Thin.ttf");
+        oldpw.setTypeface(font);
+        newpw.setTypeface(font);
+        confpw.setTypeface(font);
+        ((TextInputLayout)oldpw.getParent()).setTypeface(font);
+        ((TextInputLayout)newpw.getParent()).setTypeface(font);
+        ((TextInputLayout)confpw.getParent()).setTypeface(font);
+
         change = (Button) findViewById(R.id.buttonCHANGE);
+        change.setTypeface(font);
+
+        confpw.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
+                if (id == R.id.editTextCONFIRM || id == EditorInfo.IME_ACTION_DONE) {
+                    changePassword();
+                    return true;
+                }
+                return false;
+            }
+        });
 
         ref = new Firebase(FIREBASE_URL);
         authData = ref.getAuth();
@@ -49,46 +73,7 @@ public class ChangePasswordActivity extends AppCompatActivity{
 
             @Override
             public void onClick(View v) {
-                String newPwd = newpw.getText().toString();
-                if ( !newPwd.equals(confpw.getText().toString()) ) {
-                    Context context = getApplicationContext();
-                    Toast toast = Toast.makeText(context, "New passwords don't match.", Toast.LENGTH_SHORT);
-                    toast.show();
-                    return;
-                }
-
-                String currentPwd = String.valueOf(oldpw.getText());
-                Log.d("ChangePWD:", currentPwd);
-                ref.changePassword(email, currentPwd, newPwd, new Firebase.ResultHandler() {
-
-                    @Override
-                    public void onSuccess() {
-                        Log.d("ChangePWD:", "success");
-                        Context context = getApplicationContext();
-                        Toast toast = Toast.makeText(context, "Password changed succeeded!", Toast.LENGTH_SHORT);
-                        toast.show();
-                        finish();
-                    }
-
-                    @Override
-                    public void onError(FirebaseError firebaseError) {
-                        Context context;
-                        Toast toast;
-                        switch (firebaseError.getCode()) {
-                            case FirebaseError.INVALID_PASSWORD:
-                                Log.d("ChangePWD:", "INVALID_PASSWORD");
-                                context = getApplicationContext();
-                                toast = Toast.makeText(context, "The specified user account password is incorrect.", Toast.LENGTH_SHORT);
-                                toast.show();
-                                break;
-                            default:
-                                Log.d("ChangePWD:", firebaseError.getMessage());
-                                context = getApplicationContext();
-                                toast = Toast.makeText(context, firebaseError.getMessage(), Toast.LENGTH_SHORT);
-                                toast.show();
-                        }
-                    }
-                });
+                changePassword();
             }
         });
     }
@@ -107,5 +92,61 @@ public class ChangePasswordActivity extends AppCompatActivity{
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void changePassword() {
+        String newPwd = newpw.getText().toString();
+        if (!newPwd.equals(confpw.getText().toString()) ) {
+            // Clears the new password fields
+            newpw.setText("");
+            confpw.setText("");
+
+            // Shows the error
+            newpw.setError("New passwords don't match");
+            newpw.requestFocus();
+
+            return;
+        }
+
+        String currentPwd = String.valueOf(oldpw.getText());
+        Log.d("ChangePWD:", currentPwd);
+        ref.changePassword(email, currentPwd, newPwd, new Firebase.ResultHandler() {
+
+            @Override
+            public void onSuccess() {
+                Log.d("ChangePWD:", "success");
+                Context context = getApplicationContext();
+                Toast toast = Toast.makeText(context, "Password changed!", Toast.LENGTH_SHORT);
+                toast.show();
+                finish();
+            }
+
+            @Override
+            public void onError(FirebaseError firebaseError) {
+                Context context;
+                Toast toast;
+                switch (firebaseError.getCode()) {
+                    case FirebaseError.INVALID_PASSWORD:
+                        Log.d("ChangePWD:", "INVALID_PASSWORD");
+
+                        // Clears the password and shows the error
+                        oldpw.setText("");
+                        oldpw.setError(firebaseError.getMessage());
+                        oldpw.requestFocus();
+
+                        break;
+                    default:
+                        Log.d("ChangePWD:", firebaseError.getMessage());
+
+                        // Clears the new password fields
+                        newpw.setText("");
+                        confpw.setText("");
+
+                        // Shows the error
+                        newpw.setError(firebaseError.getMessage());
+                        newpw.requestFocus();
+                }
+            }
+        });
     }
 }

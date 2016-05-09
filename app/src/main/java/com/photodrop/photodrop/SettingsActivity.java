@@ -1,6 +1,7 @@
 package com.photodrop.photodrop;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -25,6 +26,10 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
         changePasswordButton = (Button) findViewById(R.id.changePasswordButton);
         logoutButton = (Button) findViewById(R.id.logoutButton);
+
+        Typeface fontThin = Typeface.createFromAsset(this.getAssets(), "fonts/ValterStd-Thin.ttf");
+        changePasswordButton.setTypeface(fontThin);
+        logoutButton.setTypeface(fontThin);
     }
 
     @Override
