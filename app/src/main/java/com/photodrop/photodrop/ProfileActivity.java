@@ -1,12 +1,9 @@
 package com.photodrop.photodrop;
 
-import android.app.admin.SystemUpdatePolicy;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -31,16 +28,10 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
 
     private GridView imageGrid;
     private ArrayList<Bitmap> bitmapList;
-    public Firebase images;
-    public Firebase user;
+    public Firebase images, userPhotos;
     private String userKey;
     private ImageAdapter myImageAdapter;
     private ArrayList<String> imageKeys;
-    public static final String FIREBASE_URL = "https://photodrop-umbc.firebaseio.com/";
-    public static final String FIREBASE_IMAGES_URL = FIREBASE_URL + "images";
-    public static final String FIREBASE_USER_URL = FIREBASE_URL + "users";
-    public static final String IMAGE_URL = "/image";
-    public static final String PHOTO_URL= "/photos";
 
     private static final int RESOLUTION_WIDTH = 200;
     private static final int RESOLUTION_HEIGHT = RESOLUTION_WIDTH;
@@ -65,7 +56,7 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
         this.bitmapList = new ArrayList<Bitmap>();
         // Initializes the Firebase references
         Firebase.setAndroidContext(this);
-        images = new Firebase(FIREBASE_IMAGES_URL);
+        images = new Firebase(MainActivity.FIREBASE_IMAGES_URL);
         myImageAdapter = new ImageAdapter(this, this.bitmapList);
 
         imageGrid.setAdapter(myImageAdapter);
@@ -82,17 +73,19 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
         // imageKey = "-KF2ii44GF_lLh8lNpOG";//getIntent().getStringExtra(MapsActivity.IMAGE_KEY);
 
         imageKeys = new ArrayList<>();
-        userKey = "michaelbishoff";
-        //userKey = SharedPrefUtil.getUserID(this);
-        //if(userKey == null) {
-          //  throw new RuntimeException("\n\n T_T Len userKey is null!!!\n\n");
-        //}
-        //System.out.prinln("\n "+ +" \n");
-        user = new Firebase(FIREBASE_USER_URL+"/"+userKey+PHOTO_URL);
+
+        userKey = SharedPrefUtil.getUserID(this);
+        if(userKey == null) {
+            throw new RuntimeException("\n\n T_T Len userKey is null!!!\n\n");
+        }
+
+        userPhotos = new Firebase(String.format("%s%s%s",
+                MainActivity.FIREBASE_USERS_URL, userKey, MainActivity.USER_PHOTOS_URL));
+
         System.out.println("  \n\n   >_<     "+userKey+"\n");
-        System.out.print("!!!!!!!!!!!!^_^ "+user.getPath()+"\n");
-        //user.orderByChild().getPath();
-        Query queryRef = user.orderByKey();
+        System.out.print("!!!!!!!!!!!!^_^ "+userPhotos.getPath()+"\n");
+
+        Query queryRef = userPhotos.orderByKey();
         queryRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot snapshot, String previousChild) {
@@ -126,21 +119,6 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
 
 
         });
-
-
-        //setImageData();
-
-
-
-//        try {
-//            for(int i = 0; i < 10; i++) {
-//                System.out.print(">_<!\n\n");
-//                this.bitmapList.add(urlImageToBitmap("http://placehold.it/150x150"));
-//
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
     }
 
     @Override
@@ -172,7 +150,7 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
      */
     public void setImageData(String imageKey) {
         //Log.d("ME", "Adding listener to: " + images.child(imageKey).getPath().toString());
-        Log.d("Len", "Adding listener to: " + user.child(userKey).getPath().toString());
+        Log.d("Len", "Adding listener to: " + userPhotos.child(userKey).getPath().toString());
         // TODO: Should probably save the image locally and check if the image is saved before accessing the DB again
 
         // Adds a listener then removes it once it's triggered so that the image view and num likes are set
