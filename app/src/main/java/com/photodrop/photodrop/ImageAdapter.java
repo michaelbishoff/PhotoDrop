@@ -19,10 +19,12 @@ public class ImageAdapter extends BaseAdapter {
     public static final int CROP_WIDTH = 220;
     public static final int CROP_HEIGHT = CROP_WIDTH;
 
+    private LayoutInflater inflater;
 
     public ImageAdapter(Context context, ArrayList<Bitmap> bitmapList) {
         this.context = context;
         this.bitmapList = bitmapList;
+        this.inflater = LayoutInflater.from(context);
     }
 
     public int getCount() {
@@ -30,14 +32,33 @@ public class ImageAdapter extends BaseAdapter {
     }
 
     public Object getItem(int position) {
-        return null;
+        return bitmapList.get(position);
     }
 
     public long getItemId(int position) {
-        return 0;
+        return bitmapList.get(position).getGenerationId();
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
+        ImageView photo;
+
+        // If the view isn't created, create it with the custom gridview_item and set the photo tag
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.gridview_item, parent, false);
+            convertView.setTag(R.id.photo, convertView.findViewById(R.id.photo));
+        }
+
+        photo = (ImageView) convertView.getTag(R.id.photo);
+//        photo = (ImageView) convertView.findViewById(R.id.photo);
+
+        // Gets the bitmap from the list
+        Bitmap bitmap = (Bitmap) getItem(position);
+        // Sets the photo's bitmap
+        photo.setImageBitmap(bitmap);
+
+        return convertView;
+
+/*
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
         float dd = dm.density;  //取出密度 get density of this device
         float px = 25 * dd;  //像素 = dp * 密度 pixel = dp * density
@@ -47,14 +68,17 @@ public class ImageAdapter extends BaseAdapter {
         if (convertView == null) {
             imageView = new ImageView(this.context);
             // Crops the photo
-            imageView.setLayoutParams(new GridView.LayoutParams(newWidth, newWidth));
-            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            //imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+//            imageView.setLayoutParams(new GridView.LayoutParams(newWidth, newWidth));
+//            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+//            imageView.setLayoutParams(new GridView.LayoutParams(CROP_WIDTH, CROP_HEIGHT));
+//            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
         } else {
             imageView = (ImageView) convertView;
         }
 
         imageView.setImageBitmap(this.bitmapList.get(position));
         return imageView;
+        */
     }
 }
