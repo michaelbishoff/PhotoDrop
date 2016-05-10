@@ -79,6 +79,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                 // Logs the user out
                 userAuth.logOut();
 
+                // Clears the user's shared preferences
+                SharedPrefUtil.clearSharedPreferences(this);
+
+                // TODO: Clear the locally stored photos
+
                 // Changes to the logout screen and removes the back stack
                 Intent logoutIntent = new Intent(this, LoginActivity.class);
                 logoutIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

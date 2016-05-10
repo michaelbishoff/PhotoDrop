@@ -51,4 +51,11 @@ public class SharedPrefUtil {
         return preferences.getBoolean(imageKey, false);
     }
 
+    public static void clearSharedPreferences(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.clear();
+        editor.apply();
+    }
+
 }

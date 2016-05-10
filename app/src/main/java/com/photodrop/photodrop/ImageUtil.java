@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Base64;
@@ -26,6 +27,17 @@ public class ImageUtil {
      */
     public static Bitmap getBitmapFromUri(Context context, Uri imageUri) {
 
+        try {
+            ExifInterface exif = new ExifInterface(imageUri.getPath());
+            Bitmap bitmap = BitmapFactory.decodeFile(imageUri.getPath());
+
+            return rotateImage(bitmap, exif.getAttribute(ExifInterface.TAG_ORIENTATION));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+/*
         try {
             // Gets the image bitmap. The ContentResolver is the instance of the app
             Bitmap bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), imageUri);
@@ -51,8 +63,40 @@ public class ImageUtil {
         } catch (IOException e) {
             Log.e("MainActivity", "BITMAP ERROR: " + e.toString());
         }
-
+*/
         return null;
+    }
+
+    /**
+     * Given the exit orientation as a string, return the correctly rotated image
+     */
+    private static Bitmap rotateImage(Bitmap source, String exifOrientationString) {
+
+        if (exifOrientationString != null) {
+            float angle = 0;
+            int exifOrientation = Integer.parseInt(exifOrientationString);
+
+            // Determine the angle
+            switch (exifOrientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    angle = 90;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    angle = 180;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    angle = 270;
+                    break;
+                default:
+                    return source;
+            }
+
+            return rotateImage(source, angle);
+
+            // orientation is null, so return the source
+        } else {
+            return source;
+        }
     }
 
     /**
@@ -81,6 +125,19 @@ public class ImageUtil {
         }
 
         return bitmap;
+    }
+
+    /**
+     * Encodes the file at the specified URI to a Base64 String
+     * @param context - The context that the saved the file
+     * @param uri - The absolute path to the image
+     * @param imageQuality - The quality of the encoding (0-100)
+     * @return a Base64 version of the specified image
+     */
+    public static String encodeFile(Context context, Uri uri, int imageQuality) {
+        // Gets the bitmap of the image from the URI
+        Bitmap bitmap = ImageUtil.getBitmapFromUri(context, uri);
+        return encodeBitmap(bitmap, imageQuality);
     }
 
     /**
@@ -146,7 +203,7 @@ public class ImageUtil {
      */
     //public static Bitmap decodeSampledBitmap(Resources res, int resId,
     //                                                     int reqWidth, int reqHeight) {
-    public static Bitmap decodeSampledBitmap(String encodedImage,
+    public static Bitmap decodeStringAndSampledBitmap(String encodedImage,
                                                      int reqWidth, int reqHeight) {
 
         Bitmap bitmap = null;
@@ -171,4 +228,36 @@ public class ImageUtil {
         return bitmap;
     }
 
+    /**
+     * Given the absolute path to an image, create a sampled version of the image as a Bitmap
+     * @param path - The absolute path to the image
+     * @param reqWidth - the width of the sampled image
+     * @param reqHeight - the height of the sampled image
+     * @return a sampled Bitmap of the image at the specified path
+     */
+    public static Bitmap decodeFileAndSampleBitmap(String path, int reqWidth, int reqHeight) {
+        // First decode with inJustDecodeBounds=true to check dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, options);
+
+        // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+        // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
+
+        Bitmap sampledBitmap = BitmapFactory.decodeFile(path, options);
+
+        // Rotates the image
+        try {
+            ExifInterface exif = new ExifInterface(path);
+            return rotateImage(sampledBitmap, exif.getAttribute(ExifInterface.TAG_ORIENTATION));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

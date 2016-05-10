@@ -6,8 +6,10 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -25,6 +27,7 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
 
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -103,10 +106,26 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
                 showProgress(true);
                 numPhotos = dataSnapshot.getChildrenCount();
 
-                // For each photo that the user has taken, add it to the grid view
-                for (DataSnapshot photo : dataSnapshot.getChildren()) {
-                    imageKeys.add(imageKeys.size(), photo.getKey());
-                    setImageData(photo.getKey());
+                // TODO: Make an ExternalFileUtil class
+
+                File photosDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+                File photodropDir = new File(photosDir, MainActivity.PHOTODROP_DIR);
+                File[] localPhotos = photodropDir.listFiles();
+
+                // TODO: if they have < numPhotos, download the ones they are missing, then show them all
+                // Or (maybe) make a numPhotos on firebase rather than getting the length of
+                // all of them, then get all of them if there is a difference maybe? But then
+                // that's another DB access
+
+                if (localPhotos.length == numPhotos) {
+                    loadPhotosLocally(localPhotos);
+
+                } else {
+                    // For each photo that the user has taken, add it to the grid view
+                    for (DataSnapshot photo : dataSnapshot.getChildren()) {
+                        imageKeys.add(photo.getKey());
+                        setImageData(photo.getKey());
+                    }
                 }
             }
 
@@ -169,7 +188,7 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
                 Log.d("ME", "Getting image from: " + dataSnapshot.getRef().getPath());
 
                 // Decodes the image and makes it a smaller resolution size
-                Bitmap bitmap = ImageUtil.decodeSampledBitmap(
+                Bitmap bitmap = ImageUtil.decodeStringAndSampledBitmap(
                         (String) dataSnapshot.getValue(), RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
                 // Sets the image
                 bitmapList.add(bitmap);
@@ -250,5 +269,41 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
             // and hide the relevant UI components.
             profileProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
         }
+    }
+
+    /**
+     * Loads the photos locally rather than going to the server asynchronously
+     */
+    private void loadPhotosLocally(final File[] images) {
+        Log.d("ME", "Loading photos Locally");
+        new AsyncTask<File, Integer, Void>(){
+            @Override
+            protected Void doInBackground(File... params) {
+                for (File image : images) {
+                    // Decodes the image and makes it a smaller resolution size
+                    Bitmap bitmap = ImageUtil.decodeFileAndSampleBitmap(
+                            image.getAbsolutePath(), RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+                    // Sets the image
+                    bitmapList.add(bitmap);
+                    // Removes the file extension from the file name
+                    String imageName = image.getName();
+                    String imageKey = imageName.substring(0, imageName.length() - 4);
+                    // Adds the image key to the list of image keys
+                    imageKeys.add(imageKey);
+                }
+                return null;
+            }
+
+            // Updates the UI on the main UI thread
+            @Override
+            protected void onPostExecute(Void result) {
+                super.onPostExecute(result);
+                // Notifies that the grid view has changed so the UI changes
+                myImageAdapter.notifyDataSetChanged();
+
+                // Stop the loading bar
+                showProgress(false);
+            }
+        }.execute(images);
     }
 }

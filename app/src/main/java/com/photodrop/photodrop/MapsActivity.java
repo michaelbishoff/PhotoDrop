@@ -4,13 +4,10 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -79,11 +76,11 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
     public static final String IMAGE_KEY = "IMAGE_KEY";
 
     // Parachute icons
-    public static BitmapDescriptor parachuteGrey;
+//    public static BitmapDescriptor parachuteGrey;
     public static BitmapDescriptor parachuteBlue;
     public static BitmapDescriptor parachuteRed;
-    public static BitmapDescriptor parachuteOrange;
-    public static BitmapDescriptor parachuteYellow;
+//    public static BitmapDescriptor parachuteOrange;
+//    public static BitmapDescriptor parachuteYellow;
 
 //    public static final int PARACHUTE_WIDTH = 104;
 //    public static final int PARACHUTE_HEIGHT = 120;

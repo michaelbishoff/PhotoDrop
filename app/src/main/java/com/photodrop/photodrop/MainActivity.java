@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
@@ -18,6 +20,8 @@ import android.widget.Toast;
 import com.firebase.client.Firebase;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
+
+import java.io.File;
 
 // TODO: Getting Performing stop of activity that is not resumed error http://stackoverflow.com/questions/26375920/android-performing-stop-of-activity-that-is-not-resumed
 // TODO: Resource not found Exception
@@ -34,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // UI Buttons
     private ImageButton profileButton, cameraButton, settingsButton;
     private static final int CAMERA_REQUEST = 1000;
-    private static final int IMAGE_QUALITY = 100;
+    private static final int IMAGE_QUALITY = 1;
 
     // Firebase Objects
     public Firebase images, userPhotos;
@@ -59,6 +63,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // The Map Fragment
     private MapsActivity mapsActivity;
 
+    // The location to save photos
+    public File photodropDir;
+    // TODO: Probably don't need this Uri, but just the path
+    private Uri photoSaveLocation;
+    public static final String PHOTODROP_DIR = "Photodrop/";
+    private static final String TEMP_IMAGE_FILENAME = "temp.png";
+    public static final String FILE_EXTENSION = ".png";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +91,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         images = new Firebase(FIREBASE_IMAGES_URL);
         userPhotos = new Firebase(String.format("%s%s%s", FIREBASE_USERS_URL, SharedPrefUtil.getUserID(this), USER_PHOTOS_URL));
         geoFire = new GeoFire(new Firebase(GEOFIRE_URL));
+
+        // TODO: Make an ExternalFileUtil class
+
+        // Specify where we want to save the photo
+        File photosDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        photodropDir = new File(photosDir, PHOTODROP_DIR);
+        File tempPhotoLocation = new File(photodropDir, TEMP_IMAGE_FILENAME);
+        photoSaveLocation = Uri.fromFile(tempPhotoLocation);
+
+        Log.d("DIR", "file: " + tempPhotoLocation.getAbsolutePath());
+        Log.d("DIR", "uri:  " + photoSaveLocation.getPath());
 
         Log.d("ME-MainActivity-DO", "Done onCreate()");
     }
@@ -132,8 +154,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // Open the camera and take a picture
                 Intent cameraIntent = new Intent();
                 cameraIntent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoSaveLocation);
                 startActivityForResult(cameraIntent, CAMERA_REQUEST);
-
                 break;
 
             case R.id.profileButton:
@@ -165,13 +187,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (requestCode == CAMERA_REQUEST) {
             if (resultCode == RESULT_OK) {
-                if (data != null && data.getData() != null) {
-                    // Gets the bitmap of the image from the URI
-                    Bitmap imageBitmap = ImageUtil.getBitmapFromUri(this, data.getData());
-//                    Bitmap imageBitmap = (Bitmap) data.getExtras().get("data"); // This is of lower resolution
+                File image = new File(photoSaveLocation.getPath());
+                Log.d("ME", "Imaged saved to: " + image.getAbsolutePath());
+                if (image.exists()) {
 
                     // Saves the image to Firebase
-                    new Thread(new SaveImage(imageBitmap)).start();
+                    new Thread(new SaveImage(photoSaveLocation)).start();
 
                 } else {
                     Toast.makeText(MainActivity.this, "Photo not saved :(", Toast.LENGTH_SHORT).show();
@@ -185,38 +206,59 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * TODO: Convert this to an AsyncTask if we want updates about the image's save progress
      */
     public class SaveImage implements Runnable {
-        private Bitmap bitmap;
-        public SaveImage(Bitmap bitmap) {
+        private Uri uri;
+        public SaveImage(Uri uri) {
             // TODO: Could remove the .copy() and remove the bitmap.recycle() in the ImageUtil,
             // but will the garbage collector keep the SaveImage around because it points to
             // the bitmap in the imageView?
-            this.bitmap = bitmap;//.copy(bitmap.getConfig(), true);
+            this.uri = uri;//.copy(bitmap.getConfig(), true);
         }
 
         @Override
         public void run() {
             // TODO: If !connected, then locationService is null and it crashes
+            if (connected) {
 
-            // Getting the user's location
-            Location location = locationService.getUserLocation();
+                // Getting the user's location
+                Location location = locationService.getUserLocation();
 
-            Log.d("ME", String.format("Saving image at:\nlat: %.10f\nlng: %.10f",
-                    location.getLatitude(), location.getLongitude()));
+                Log.d("ME", String.format("Saving image at:\nlat: %.10f\nlng: %.10f",
+                        location.getLatitude(), location.getLongitude()));
 
-            // Generates a unique hash to store the image
-            String imageKey = images.push().getKey();
+                // Generates a unique hash to store the image
+                String imageKey = images.push().getKey();
 
-            // Saves the location of the drop and saves the image with the same key
-            geoFire.setLocation(imageKey, new GeoLocation(location.getLatitude(), location.getLongitude()));
-            images.child(imageKey + IMAGE_URL).setValue(ImageUtil.encodeBitmap(bitmap, IMAGE_QUALITY));
-            userPhotos.child(imageKey).setValue(1);
+                // Saves the location of the drop and saves the image with the same key
+                geoFire.setLocation(imageKey, new GeoLocation(location.getLatitude(), location.getLongitude()));
+                images.child(imageKey + IMAGE_URL).setValue(ImageUtil.encodeFile(MainActivity.this, uri, IMAGE_QUALITY));
+                userPhotos.child(imageKey).setValue(1);
 
-            // Frees up some memory (i think lol)
-            imageKey = null;
-            bitmap = null;
-            location = null;
+                // Renames the file to the key name
+                File savedImage = new File(uri.getPath());
+                savedImage.renameTo(new File(photodropDir.getAbsolutePath() + "/" + imageKey + FILE_EXTENSION));
 
-            Log.d("ME", "Image saved!");
+                // Lets other apps know about the photo that we took
+                galleryAddPic(Uri.fromFile(savedImage));
+
+                // Frees up some memory (i think lol)
+                imageKey = null;
+                location = null;
+                savedImage = null;
+
+                Log.d("ME", "Image saved!");
+            } else {
+                Toast.makeText(MainActivity.this, "Enable Location Services", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        /**
+         * Lets other apps know about the photo that we took
+         * @param path - the path to the photo
+         */
+        private void galleryAddPic(Uri path) {
+            Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            mediaScanIntent.setData(path);
+            MainActivity.this.sendBroadcast(mediaScanIntent);
         }
     }
 
