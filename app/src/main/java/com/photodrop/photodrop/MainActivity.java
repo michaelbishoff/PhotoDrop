@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final String IMAGE_URL = "/image";
     public static final String COMMENTS_URL = "/comments";
     public static final String LIKES_URL = "/likes";
+    public static final String FLAGS_URL = "/flags";
     public static final String NUM_COMMENTS_URL = "/num_comments";
     public static final String USER_PHOTOS_URL = "/photos";
 

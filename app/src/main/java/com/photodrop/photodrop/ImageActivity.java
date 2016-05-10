@@ -2,6 +2,8 @@ package com.photodrop.photodrop;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -60,10 +62,25 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         commentButton = (ImageButton) findViewById(R.id.commentButton);
         flagButton = (ImageButton) findViewById(R.id.flagButton);
         numLikesText = (TextView) findViewById(R.id.numLikes);
+
         //if the user has not liked the image
         if(!SharedPrefUtil.getCurrentUsersLike(getApplicationContext(),imageKey))
         {
             SharedPrefUtil.saveCurrentUsersLike(getApplicationContext(), imageKey, false);
+        }
+        else
+        {
+            likeButton.setImageResource(R.drawable.icon_teal_like);
+        }
+
+        //if the user has not flagged the image
+        if(!SharedPrefUtil.getCurrentUsersFlag(getApplicationContext(), imageKey))
+        {
+            SharedPrefUtil.saveCurrentUsersFlag(getApplicationContext(), imageKey, false);
+        }
+        else
+        {
+            flagButton.setImageResource(R.drawable.icon_red_flag);
         }
 
     }
@@ -166,11 +183,11 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
                     // Starts a thread safe incrementation of the number of likes
                     images.child(imageKey + MainActivity.LIKES_URL).runTransaction(new IncrementLikesTransaction());
                     //disable the like functionality
+                    likeButton.setImageResource(R.drawable.icon_teal_like);
                     likeButton.setEnabled(false);
 
                 }
                 SharedPrefUtil.saveCurrentUsersLike(getApplicationContext(),imageKey, true);
-
                 break;
 
 
@@ -184,8 +201,16 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
                 break;
 
             case R.id.flagButton:
-                // TODO: Make this go to Firebase
-                Toast.makeText(ImageActivity.this, "Flagged", Toast.LENGTH_SHORT).show();
+                //check if the image has been liked
+                if(!SharedPrefUtil.getCurrentUsersFlag(getApplicationContext(), imageKey)) {
+                    // Starts a thread safe incrementation of the number of flag
+                    images.child(imageKey + MainActivity.FLAGS_URL).runTransaction(new IncrementFlagsTransaction());
+                    //disable the flag functionality
+                    flagButton.setImageResource(R.drawable.icon_red_flag);
+                    flagButton.setEnabled(false);
+                }
+                SharedPrefUtil.saveCurrentUsersFlag(getApplicationContext(),imageKey, true);
+                //Toast.makeText(ImageActivity.this, "Flagged", Toast.LENGTH_SHORT).show();
                 break;
         }
     }
@@ -223,6 +248,36 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         public void onComplete(FirebaseError firebaseError, boolean commited, DataSnapshot dataSnapshot) {
             Log.d("ME", "Updating UI to " + dataSnapshot.getValue() + " num likes");
             numLikesText.setText(String.format("%d Likes", (long) dataSnapshot.getValue()));
+        }
+    }
+
+
+
+    private class IncrementFlagsTransaction implements Transaction.Handler {
+
+        /**
+         * The Transaction we want to run on the specified data.
+         * If there is no value, set it. If there is a value, increment it.
+         */
+        @Override
+        public Transaction.Result doTransaction(MutableData mutableData) {
+            if (mutableData.getValue() == null) {
+                mutableData.setValue(1);
+            } else {
+                mutableData.setValue((long) mutableData.getValue() + 1);
+            }
+
+            return Transaction.success(mutableData); // we can also abort by calling Transaction.abort()
+        }
+
+        /**
+         * This method will be called once with the results of the transaction.
+         * Updates the UI with the new like count.
+         */
+        @Override
+        public void onComplete(FirebaseError firebaseError, boolean commited, DataSnapshot dataSnapshot) {
+            Log.d("ME", "Updating UI to " + dataSnapshot.getValue() + " num flags");
+
         }
     }
 }

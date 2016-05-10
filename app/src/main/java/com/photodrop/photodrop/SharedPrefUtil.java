@@ -39,4 +39,19 @@ public class SharedPrefUtil {
         Boolean liked = preferences.getBoolean(imageKey,false);
         return liked;
     }
+
+
+    public static void saveCurrentUsersFlag(Context context, String imageKey, Boolean flagged){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(imageKey,flagged);
+        editor.commit();
+    }
+
+    public static Boolean getCurrentUsersFlag(Context context, String imageKey){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        Boolean flagged = preferences.getBoolean(imageKey,false);
+        return flagged;
+    }
+
 }
