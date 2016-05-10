@@ -1,6 +1,7 @@
 package com.photodrop.photodrop;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -59,6 +60,12 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         commentButton = (ImageButton) findViewById(R.id.commentButton);
         flagButton = (ImageButton) findViewById(R.id.flagButton);
         numLikesText = (TextView) findViewById(R.id.numLikes);
+        //if the user has not liked the image
+        if(!SharedPrefUtil.getCurrentUsersLike(getApplicationContext(),imageKey))
+        {
+            SharedPrefUtil.saveCurrentUsersLike(getApplicationContext(), imageKey, false);
+        }
+
     }
 
     @Override
@@ -150,12 +157,22 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
 
     @Override
     public void onClick(View v) {
+
         switch (v.getId()) {
             case R.id.likeButton:
 
-                // Starts a thread safe incrementation of the number of likes
-                images.child(imageKey + MainActivity.LIKES_URL).runTransaction(new IncrementLikesTransaction());
+                //check if the image has been liked
+                if(!SharedPrefUtil.getCurrentUsersLike(getApplicationContext(), imageKey)) {
+                    // Starts a thread safe incrementation of the number of likes
+                    images.child(imageKey + MainActivity.LIKES_URL).runTransaction(new IncrementLikesTransaction());
+                    //disable the like functionality
+                    likeButton.setEnabled(false);
+
+                }
+                SharedPrefUtil.saveCurrentUsersLike(getApplicationContext(),imageKey, true);
+
                 break;
+
 
             case R.id.commentButton:
                 // Opens the CommentActivity
