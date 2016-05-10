@@ -178,14 +178,12 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
     public boolean onMarkerClick(Marker marker) {
         Log.d("ME", "Clicked on: " + marker.getTitle());
 
-        // If the user clicked the user icon or a drop that is out of range, then do nothing
-        if (notViewableDrops.containsKey(marker.getTitle())) {
-            return true;
+        // If the user clicked the user icon or a drop that is in range, then open the photo
+        if (!notViewableDrops.containsKey(marker.getTitle())) {
+            Intent openImageIntent = new Intent(getActivity(), ImageActivity.class);
+            openImageIntent.putExtra(IMAGE_KEY, marker.getTitle());
+            startActivity(openImageIntent);
         }
-
-        Intent openImageIntent = new Intent(getActivity(), ImageActivity.class);
-        openImageIntent.putExtra(IMAGE_KEY, marker.getTitle());
-        startActivity(openImageIntent);
 
         // TODO: How should we indicate the marker that the user just clicked on or has previously clicked on
 
@@ -288,24 +286,25 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
          */
         @Override
         public void onKeyEntered(String key, GeoLocation location) {
-            if (mMap != null) {
-                Log.d("ME", "Dropping image out of view range");
+            synchronized (viewableDrops) {
+                synchronized (notViewableDrops) {
+                    if (mMap != null && !viewableDrops.containsKey(key)) {
+                        Log.d("ME", "Dropping image out of view range");
 
-                // Creates a LatLng object from the location
-                LatLng drop = new LatLng(location.latitude, location.longitude);
+                        // Creates a LatLng object from the location
+                        LatLng drop = new LatLng(location.latitude, location.longitude);
 
-                // Ground Overlay is flat on the map
-//                mMap.addGroundOverlay(new GroundOverlayOptions()
-//                        .position(drop, 50, 50)
-//                        .image(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                Marker marker = mMap.addMarker(new MarkerOptions()
-                        .position(drop)
-                        .title(key)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                        // Adds the marker to the map
+                        Marker marker = mMap.addMarker(new MarkerOptions()
+                                .position(drop)
+                                .title(key)
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
 
-                // Adds the key and the marker on the map to the hash table of viewable drops
-                notViewableDrops.put(key, marker);
-                Log.d("ME", "Drop Key: " + key);
+                        // Adds the key and the marker on the map to the hash table of not viewable drops
+                        notViewableDrops.put(key, marker);
+                        Log.d("ME", "Drop Key: " + key);
+                    }
+                }
             }
         }
 
@@ -393,15 +392,35 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         public void onKeyEntered(String key, GeoLocation location) {
             Log.d("ME", "KEY in Range: " + key);
 
-            // If the drop was not in range, make it viewable
-            // Redundancy check since the MaxRangeListener is called first
-            if (notViewableDrops.containsKey(key)) {
-                Log.d("ME", "Toggling drop ON");
-                toggleMarkerViewable(key, notViewableDrops, viewableDrops,
-                        BitmapDescriptorFactory.defaultMarker());
-                return;
-            } else {
-                throw new RuntimeException("Marker for close range dropping before Max range");
+            synchronized (viewableDrops) {
+                synchronized (notViewableDrops) {
+
+                    // If the drop was not in range, make it viewable
+                    // Redundancy check since the MaxRangeListener is called first
+                    if (notViewableDrops.containsKey(key)) {
+                        Log.d("ME", "Toggling drop ON");
+                        toggleMarkerViewable(key, notViewableDrops, viewableDrops,
+                                BitmapDescriptorFactory.defaultMarker());
+                        return;
+
+                        // CloseRangeListener onKeyEntered() called before MaxRangeListener onKeyEntered()
+                    } else {
+
+                        // Creates a LatLng object from the location
+                        LatLng drop = new LatLng(location.latitude, location.longitude);
+
+                        // Adds the marker to the map
+                        Marker marker = mMap.addMarker(new MarkerOptions()
+                                .position(drop)
+                                .title(key)
+                                .icon(BitmapDescriptorFactory.defaultMarker()));
+
+                        // Adds the key and the marker on the map to the hash table of viewable drops
+                        viewableDrops.put(key, marker);
+
+//                throw new RuntimeException("Marker for close range dropping before Max range");
+                    }
+                }
             }
         }
 
