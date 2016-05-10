@@ -3,6 +3,7 @@ package com.photodrop.photodrop;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -36,6 +37,10 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
     private Firebase images;
     private String imageKey;
 
+    // The amount to change the number of likes and flags
+    private static int INCREASE_BY_ONE = 1;
+    private static int DECREASE_BY_ONE = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,26 +68,19 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         flagButton = (ImageButton) findViewById(R.id.flagButton);
         numLikesText = (TextView) findViewById(R.id.numLikes);
 
-        //if the user has not liked the image
-        if(!SharedPrefUtil.getCurrentUsersLike(getApplicationContext(),imageKey))
-        {
-            SharedPrefUtil.saveCurrentUsersLike(getApplicationContext(), imageKey, false);
-        }
-        else
-        {
-            likeButton.setImageResource(R.drawable.icon_teal_like);
+        // Sets the font of the like text
+        Typeface font = Typeface.createFromAsset(this.getAssets(), "fonts/ValterStd-Thin.ttf");
+        numLikesText.setTypeface(font);
+
+        // If the user has liked the image
+        if(SharedPrefUtil.getCurrentUsersLike(getApplicationContext(),imageKey)) {
+            likeButton.setImageResource(R.drawable.icon_like_teal);
         }
 
-        //if the user has not flagged the image
-        if(!SharedPrefUtil.getCurrentUsersFlag(getApplicationContext(), imageKey))
-        {
-            SharedPrefUtil.saveCurrentUsersFlag(getApplicationContext(), imageKey, false);
+        // If the user has flagged the image
+        if(SharedPrefUtil.getCurrentUsersFlag(getApplicationContext(), imageKey)) {
+            flagButton.setImageResource(R.drawable.icon_flag_red);
         }
-        else
-        {
-            flagButton.setImageResource(R.drawable.icon_red_flag);
-        }
-
     }
 
     @Override
@@ -178,16 +176,24 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         switch (v.getId()) {
             case R.id.likeButton:
 
-                //check if the image has been liked
-                if(!SharedPrefUtil.getCurrentUsersLike(getApplicationContext(), imageKey)) {
-                    // Starts a thread safe incrementation of the number of likes
-                    images.child(imageKey + MainActivity.LIKES_URL).runTransaction(new IncrementLikesTransaction());
-                    //disable the like functionality
-                    likeButton.setImageResource(R.drawable.icon_teal_like);
-                    likeButton.setEnabled(false);
+                // If the user previously liked the photo, un-like it
+                if(SharedPrefUtil.getCurrentUsersLike(getApplicationContext(), imageKey)) {
+                    // Starts a thread safe decrementation of the number of likes
+                    images.child(imageKey + MainActivity.LIKES_URL).runTransaction(new AdjustLikesTransaction(DECREASE_BY_ONE));
+                    // Update the UI
+                    likeButton.setImageResource(R.drawable.icon_like_white);
+                    // Mark the image as liked locally
+                    SharedPrefUtil.saveCurrentUsersLike(getApplicationContext(), imageKey, false);
 
+                    // The user likes this photo
+                } else {
+                    // Starts a thread safe incrementation of the number of likes
+                    images.child(imageKey + MainActivity.LIKES_URL).runTransaction(new AdjustLikesTransaction(INCREASE_BY_ONE));
+                    // Update the UI
+                    likeButton.setImageResource(R.drawable.icon_like_teal);
+                    // Mark the image as liked locally
+                    SharedPrefUtil.saveCurrentUsersLike(getApplicationContext(), imageKey, true);
                 }
-                SharedPrefUtil.saveCurrentUsersLike(getApplicationContext(),imageKey, true);
                 break;
 
 
@@ -197,20 +203,30 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
                 // Passes this image's key to the CommentActivity
                 commentIntent.putExtra(MapsActivity.IMAGE_KEY, imageKey);
                 startActivity(commentIntent);
-
                 break;
 
             case R.id.flagButton:
-                //check if the image has been liked
-                if(!SharedPrefUtil.getCurrentUsersFlag(getApplicationContext(), imageKey)) {
+                // Check if the image has been flagged
+                // If the user previously flagged the photo, un-flag it
+                if(SharedPrefUtil.getCurrentUsersFlag(getApplicationContext(), imageKey)) {
+                    // Starts a thread safe decrementation of the number of flag
+                    images.child(imageKey + MainActivity.FLAGS_URL).runTransaction(new AdjustFlagsTransaction(DECREASE_BY_ONE));
+                    // Update the UI
+                    flagButton.setImageResource(R.drawable.icon_flag_white);
+                    // Mark the image as flagged locally
+                    SharedPrefUtil.saveCurrentUsersFlag(getApplicationContext(), imageKey, false);
+
+                    // The user flagged this photo
+                } else {
                     // Starts a thread safe incrementation of the number of flag
-                    images.child(imageKey + MainActivity.FLAGS_URL).runTransaction(new IncrementFlagsTransaction());
-                    //disable the flag functionality
-                    flagButton.setImageResource(R.drawable.icon_red_flag);
-                    flagButton.setEnabled(false);
+                    images.child(imageKey + MainActivity.FLAGS_URL).runTransaction(new AdjustFlagsTransaction(INCREASE_BY_ONE));
+                    // Update the UI
+                    flagButton.setImageResource(R.drawable.icon_flag_red);
+                    // Mark the image as flagged locally
+                    SharedPrefUtil.saveCurrentUsersFlag(getApplicationContext(), imageKey, true);
+
+                    Toast.makeText(ImageActivity.this, "Flagged", Toast.LENGTH_SHORT).show();
                 }
-                SharedPrefUtil.saveCurrentUsersFlag(getApplicationContext(),imageKey, true);
-                //Toast.makeText(ImageActivity.this, "Flagged", Toast.LENGTH_SHORT).show();
                 break;
         }
     }
@@ -221,9 +237,15 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
      */
 
     /**
-     * Increments the number of likes at the specified url (should end in /likes)
+     * Adjusts the number of likes at the specified url (should end in /likes)
      */
-    private class IncrementLikesTransaction implements Transaction.Handler {
+    private class AdjustLikesTransaction implements Transaction.Handler {
+        private int difference;
+
+        public AdjustLikesTransaction(int difference) {
+            super();
+            this.difference = difference;
+        }
 
         /**
          * The Transaction we want to run on the specified data.
@@ -234,7 +256,7 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
             if (mutableData.getValue() == null) {
                 mutableData.setValue(1);
             } else {
-                mutableData.setValue((long) mutableData.getValue() + 1);
+                mutableData.setValue((long) mutableData.getValue() + difference);
             }
 
             return Transaction.success(mutableData); // we can also abort by calling Transaction.abort()
@@ -251,9 +273,16 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         }
     }
 
+    /**
+     * Adjusts the number of flags at the specified url (should end in /flags)
+     */
+    private class AdjustFlagsTransaction implements Transaction.Handler {
+        private int difference;
 
-
-    private class IncrementFlagsTransaction implements Transaction.Handler {
+        public AdjustFlagsTransaction(int difference) {
+            super();
+            this.difference = difference;
+        }
 
         /**
          * The Transaction we want to run on the specified data.
@@ -264,7 +293,7 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
             if (mutableData.getValue() == null) {
                 mutableData.setValue(1);
             } else {
-                mutableData.setValue((long) mutableData.getValue() + 1);
+                mutableData.setValue((long) mutableData.getValue() + difference);
             }
 
             return Transaction.success(mutableData); // we can also abort by calling Transaction.abort()
@@ -276,8 +305,7 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
          */
         @Override
         public void onComplete(FirebaseError firebaseError, boolean commited, DataSnapshot dataSnapshot) {
-            Log.d("ME", "Updating UI to " + dataSnapshot.getValue() + " num flags");
-
+            Log.d("ME", "Updating to " + dataSnapshot.getValue() + " num flags");
         }
     }
 }
