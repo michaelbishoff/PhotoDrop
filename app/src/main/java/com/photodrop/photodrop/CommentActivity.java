@@ -219,7 +219,7 @@ public class CommentActivity extends AppCompatActivity {
                 // at the bottom from a different user
             } else if (initialNumComments != 0 && initialNumComments == numComments) {
                 Log.d("ME", "Making toast when comment == " + comment);
-                Toast.makeText(CommentActivity.this, "New Comment", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(CommentActivity.this, "New Comment", Toast.LENGTH_SHORT).show();
 //                    Snackbar.make(findViewById(R.id.listView), "New Comment",
 //                            Snackbar.LENGTH_LONG).setAction("Action", null).show();
 
