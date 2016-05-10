@@ -124,9 +124,9 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
     @Override
     protected void onPause() {
         super.onPause();
-        bitmapList = null;
-        myImageAdapter = null;
-        imageGrid = null;
+        //bitmapList = null;
+        //myImageAdapter = null;
+        //imageGrid = null;
     }
 
     private Bitmap urlImageToBitmap(String imageUrl) throws Exception {

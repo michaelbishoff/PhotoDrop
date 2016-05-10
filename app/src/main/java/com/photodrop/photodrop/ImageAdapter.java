@@ -39,10 +39,10 @@ public class ImageAdapter extends BaseAdapter {
 
     public View getView(int position, View convertView, ViewGroup parent) {
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
-        float dd = dm.density;  //取出密度
-        float px = 25 * dd;  //像素 = dp * 密度
-        float screenWidth = dm.widthPixels;  //取出螢幕寬度
-        int newWidth = (int) (screenWidth - px) / 4; // 一行顯示四個縮圖
+        float dd = dm.density;  //取出密度 get density of this device
+        float px = 25 * dd;  //像素 = dp * 密度 pixel = dp * density
+        float screenWidth = dm.widthPixels;  //取出螢幕寬度 get the breadth of this device
+        int newWidth = (int) (screenWidth - px) / 3; // 一行顯示四個縮圖 show 3 items per row
         ImageView imageView;
         if (convertView == null) {
             imageView = new ImageView(this.context);
