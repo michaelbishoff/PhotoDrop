@@ -19,9 +19,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
+import android.widget.Toast;
 
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
@@ -79,8 +82,11 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
 //    public static BitmapDescriptor parachuteGrey;
     public static BitmapDescriptor parachuteBlue;
     public static BitmapDescriptor parachuteRed;
-//    public static BitmapDescriptor parachuteOrange;
-//    public static BitmapDescriptor parachuteYellow;
+    public static BitmapDescriptor parachuteOrange;
+    public static BitmapDescriptor parachuteYellow;
+
+    public static int NUM_LIKES_YELLOW = 10;
+    public static int NUM_LIKES_ORANGE = 5;
 
 //    public static final int PARACHUTE_WIDTH = 104;
 //    public static final int PARACHUTE_HEIGHT = 120;
@@ -116,8 +122,8 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
 //        parachuteGrey = createBitmapDescriptor(R.drawable.parachute_grey);
         parachuteBlue = createBitmapDescriptor(R.drawable.parachute_blue);
         parachuteRed = createBitmapDescriptor(R.drawable.parachute_red);
-//        parachuteOrange = createBitmapDescriptor(R.drawable.parachute_orange);
-//        parachuteYellow = createBitmapDescriptor(R.drawable.parachute_yellow);
+        parachuteOrange = createBitmapDescriptor(R.drawable.parachute_orange);
+        parachuteYellow = createBitmapDescriptor(R.drawable.parachute_yellow);
 
 
         mapFragment.getMapAsync(this);
@@ -219,6 +225,8 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
             Intent openImageIntent = new Intent(getActivity(), ImageActivity.class);
             openImageIntent.putExtra(IMAGE_KEY, marker.getTitle());
             startActivity(openImageIntent);
+        } else {
+            Toast.makeText(mainActivity, "Move closer to view", Toast.LENGTH_SHORT).show();
         }
 
         // TODO: How should we indicate the marker that the user just clicked on or has previously clicked on
@@ -403,6 +411,11 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
                         // If a new photo was added, show the animation
                         if (nearImagesAdded) {
                             dropAnimation(drop, marker);
+
+                            // If it's a new photo, we know it has zero likes, so don't need
+                            // to set its color
+                        } else {
+                            setMarkerColor(marker);
                         }
 
                         // Adds the key and the marker on the map to the hash table of not viewable drops
@@ -470,9 +483,8 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
                 // walked out of the MAX_QUERY_RANGE from that point), but it does for
                 // onKeyEntered() because the key could show up as un-clickable.
                 // Firebase or GeoFire may do them in order because I haven't had a problem yet (onKeyEntered() twice then onGeoQueryRead() twice)
-
-                nearImagesAdded = true;
             }
+            nearImagesAdded = true;
         }
 
         @Override
@@ -599,6 +611,29 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
                 } else {
                     // animation ended
                 }
+            }
+        });
+    }
+
+    private void setMarkerColor(final Marker marker) {
+        mainActivity.images.child(marker.getTitle() + MainActivity.LIKES_URL).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null) {
+                    long numLikes = (long) dataSnapshot.getValue();
+
+                    if (numLikes > NUM_LIKES_YELLOW) {
+                        marker.setIcon(parachuteYellow);
+                    }
+                    if (numLikes > NUM_LIKES_ORANGE) {
+                        marker.setIcon(parachuteOrange);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
             }
         });
     }
