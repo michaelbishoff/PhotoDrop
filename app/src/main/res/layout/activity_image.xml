@@ -10,6 +10,16 @@
     android:background="@color/imageBackground"
     tools:context="com.photodrop.photodrop.ImageActivity">
 
+    <!-- Image loading progress -->
+    <ProgressBar
+        android:id="@+id/image_progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"/>
+
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

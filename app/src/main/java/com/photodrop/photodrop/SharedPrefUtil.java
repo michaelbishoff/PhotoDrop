@@ -15,7 +15,7 @@ public class SharedPrefUtil {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString("UID", uid);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getUserID(Context context) {
@@ -31,26 +31,24 @@ public class SharedPrefUtil {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(imageKey, liked);
-        editor.commit();
+        editor.apply();
     }
 
     public static Boolean getCurrentUsersLike(Context context, String imageKey){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        Boolean liked = preferences.getBoolean(imageKey, false);
-        return liked;
+        return preferences.getBoolean(imageKey, false);
     }
 
     public static void saveCurrentUsersFlag(Context context, String imageKey, Boolean flagged){
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(imageKey, flagged);
-        editor.commit();
+        editor.apply();
     }
 
     public static Boolean getCurrentUsersFlag(Context context, String imageKey){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        Boolean flagged = preferences.getBoolean(imageKey, false);
-        return flagged;
+        return preferences.getBoolean(imageKey, false);
     }
 
 }

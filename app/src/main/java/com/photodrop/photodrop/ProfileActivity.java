@@ -1,8 +1,12 @@
 package com.photodrop.photodrop;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -32,6 +36,9 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
     private String userKey;
     private ImageAdapter myImageAdapter;
     private ArrayList<String> imageKeys;
+    private View profileProgressView;
+
+    private long numPhotos;
 
     private static final int RESOLUTION_WIDTH = 200;
     private static final int RESOLUTION_HEIGHT = RESOLUTION_WIDTH;
@@ -46,11 +53,15 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
         // Adds the back button to the toolbar since we're adding it dynamically
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         System.out.print(">_<\n\n");
+
+        profileProgressView = findViewById(R.id.profile_progress);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
+        // TODO: Some of this should be in onCreate()
 
         this.imageGrid = (GridView) findViewById(R.id.profileActivityGridview);
         this.bitmapList = new ArrayList<Bitmap>();
@@ -84,40 +95,25 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
 
         System.out.println("  \n\n   >_<     "+userKey+"\n");
         System.out.print("!!!!!!!!!!!!^_^ "+userPhotos.getPath()+"\n");
-        // TODO: Removvevent  steners in onPuase() aadd inResume()b
+
         Query queryRef = userPhotos.orderByKey();
-        queryRef.addChildEventListener(new ChildEventListener() {
+        queryRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot snapshot, String previousChild) {
-                System.out.println(">>>>>>>>>>>>>>>>>>>>"+snapshot.getKey()+"\n");
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                showProgress(true);
+                numPhotos = dataSnapshot.getChildrenCount();
 
-                // Adds the key to the end
-                imageKeys.add(imageKeys.size(), snapshot.getKey());
-
-                setImageData(snapshot.getKey());
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                System.out.println("onChildChanged: I am confused...\n");
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
+                // For each photo that the user has taken, add it to the grid view
+                for (DataSnapshot photo : dataSnapshot.getChildren()) {
+                    imageKeys.add(imageKeys.size(), photo.getKey());
+                    setImageData(photo.getKey());
+                }
             }
 
             @Override
             public void onCancelled(FirebaseError firebaseError) {
-
+                Log.e("FirebaseError", firebaseError.getMessage());
             }
-
-
         });
     }
 
@@ -182,12 +178,17 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
                 myImageAdapter.notifyDataSetChanged();
             }
         }
+        numPhotos--;
+        if (numPhotos == 0) {
+            showProgress(false);
+        }
     }
 
     @Override
     public void onCancelled(FirebaseError firebaseError) {
         throw new RuntimeException("\n\n T_T Len onCancelled()!!!\n\n"+firebaseError.getMessage());
     }
+
     /**
      * Associates the menu_profile with this activity's menu
      */
@@ -223,5 +224,31 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Shows the progress UI and hides the login form.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            profileProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            profileProgressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    profileProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            profileProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
     }
 }

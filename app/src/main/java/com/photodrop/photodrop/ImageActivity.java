@@ -1,10 +1,14 @@
 package com.photodrop.photodrop;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +37,7 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
     private ImageView imageView;
     private ImageButton likeButton, commentButton, flagButton;
     private TextView numLikesText;
+    private View imageProgressView;
 
     // Firebase Objects
     private Firebase images;
@@ -67,6 +73,7 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
         commentButton = (ImageButton) findViewById(R.id.commentButton);
         flagButton = (ImageButton) findViewById(R.id.flagButton);
         numLikesText = (TextView) findViewById(R.id.numLikes);
+        imageProgressView = findViewById(R.id.image_progress);
 
         // Sets the font of the like text
         Typeface font = Typeface.createFromAsset(this.getAssets(), "fonts/ValterStd-Thin.ttf");
@@ -157,6 +164,9 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
                 imageView.setImageBitmap(ImageUtil.getBitmapFromEncodedImage(
                         (String) dataSnapshot.getValue()));
 
+                // Hides the progress bar
+                showProgress(false);
+
             } else if (key.equals("likes")) {
                 Log.d("ME", "Loading Likes: " + dataSnapshot.getValue());
                 numLikesText.setText(String.format("%d Likes", (long) dataSnapshot.getValue()));
@@ -228,6 +238,42 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
                     Toast.makeText(ImageActivity.this, "Flagged", Toast.LENGTH_SHORT).show();
                 }
                 break;
+        }
+    }
+
+    /**
+     * Shows the progress UI and hides the login form.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            imageView.setVisibility(show ? View.GONE : View.VISIBLE);
+            imageView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    imageView.setVisibility(show ? View.GONE : View.VISIBLE);
+                }
+            });
+
+            imageProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            imageProgressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    imageProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            imageProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            imageView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
 
