@@ -4,14 +4,24 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Point;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -22,6 +32,7 @@ import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -65,6 +76,19 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
     // Key used to pass the image key as a value to the ImageActivity
     public static final String IMAGE_KEY = "IMAGE_KEY";
 
+    // Parachute icons
+    public static BitmapDescriptor parachuteGrey;
+    public static BitmapDescriptor parachuteBlue;
+    public static BitmapDescriptor parachuteRed;
+    public static BitmapDescriptor parachuteOrange;
+    public static BitmapDescriptor parachuteYellow;
+
+//    public static final int PARACHUTE_WIDTH = 104;
+//    public static final int PARACHUTE_HEIGHT = 120;
+
+    public static final int PARACHUTE_WIDTH = 130;
+    public static final int PARACHUTE_HEIGHT = 150;
+
 
     /**
      * The first callback method invoked when you start a fragment. Gets the main activity
@@ -86,6 +110,15 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
+
+        // Initializes the parachute objects
+//        parachuteGrey = createBitmapDescriptor(R.drawable.parachute_grey);
+        parachuteBlue = createBitmapDescriptor(R.drawable.parachute_blue);
+        parachuteRed = createBitmapDescriptor(R.drawable.parachute_red);
+//        parachuteOrange = createBitmapDescriptor(R.drawable.parachute_orange);
+//        parachuteYellow = createBitmapDescriptor(R.drawable.parachute_yellow);
+
+
         mapFragment.getMapAsync(this);
 
         // Initializes the Firebase references
@@ -112,6 +145,19 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         Log.d("ME-MapsActivity-DO", "Done onCreateView(): " + mainActivity);
 
         return view;
+    }
+
+    /**
+     * Creates a BitmapDescriptor for the specified drawable. The drawable is a parachute icon that
+     * is on the map, so they all have the same size.
+     * @param drawableId - The ID of the drawable in the R file
+     * @return a BitmapDescriptor
+     */
+    private BitmapDescriptor createBitmapDescriptor(int drawableId) {
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) getResources().getDrawable(drawableId, null);
+        Bitmap bitmap = bitmapDrawable.getBitmap();
+        bitmap = Bitmap.createScaledBitmap(bitmap, PARACHUTE_WIDTH, PARACHUTE_HEIGHT, false);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
     @Override
@@ -286,6 +332,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
          */
         @Override
         public void onKeyEntered(String key, GeoLocation location) {
+            Log.d("ME", "KEY OUT of Range: " + key);
             synchronized (viewableDrops) {
                 synchronized (notViewableDrops) {
                     if (mMap != null && !viewableDrops.containsKey(key)) {
@@ -294,11 +341,20 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
                         // Creates a LatLng object from the location
                         LatLng drop = new LatLng(location.latitude, location.longitude);
 
+                        // TODO: Resize the photo for the screen size (maybe do it this way, or
+                        // just do it the regular way and have multiple versions of the same file
+                        // or maybe we don't have to do it?)
+
                         // Adds the marker to the map
                         Marker marker = mMap.addMarker(new MarkerOptions()
                                 .position(drop)
                                 .title(key)
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                                .icon(parachuteBlue));
+
+                        // If a new photo was added, show the animation
+                        if (nearImagesAdded) {
+                            dropAnimation(drop, marker);
+                        }
 
                         // Adds the key and the marker on the map to the hash table of not viewable drops
                         notViewableDrops.put(key, marker);
@@ -399,8 +455,8 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
                     // Redundancy check since the MaxRangeListener is called first
                     if (notViewableDrops.containsKey(key)) {
                         Log.d("ME", "Toggling drop ON");
-                        toggleMarkerViewable(key, notViewableDrops, viewableDrops,
-                                BitmapDescriptorFactory.defaultMarker());
+                        toggleMarkerViewable(key, notViewableDrops, viewableDrops, parachuteRed);
+//                                BitmapDescriptorFactory.defaultMarker());
                         return;
 
                         // CloseRangeListener onKeyEntered() called before MaxRangeListener onKeyEntered()
@@ -413,7 +469,12 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
                         Marker marker = mMap.addMarker(new MarkerOptions()
                                 .position(drop)
                                 .title(key)
-                                .icon(BitmapDescriptorFactory.defaultMarker()));
+                                .icon(parachuteRed));
+
+                        // If a new photo was added, show the animation
+                        if (nearImagesAdded) {
+                            dropAnimation(drop, marker);
+                        }
 
                         // Adds the key and the marker on the map to the hash table of viewable drops
                         viewableDrops.put(key, marker);
@@ -438,9 +499,8 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
             // must already be in viewableDrops
             if (viewableDrops.containsKey(key)) {
                 Log.d("ME", "Toggling drop OFF");
-                toggleMarkerViewable(key, viewableDrops, notViewableDrops,
-                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-
+                toggleMarkerViewable(key, viewableDrops, notViewableDrops, parachuteBlue);
+//                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
             }
         }
 
@@ -463,5 +523,34 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         public void onGeoQueryError(FirebaseError error) {
             System.err.println("There was an error with this query: " + error);
         }
+    }
+
+    private void dropAnimation(final LatLng target, final Marker marker) {
+        final long duration = 1000;
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        Projection proj = mMap.getProjection();
+
+        Point startPoint = proj.toScreenLocation(target);
+        startPoint.y = 0;
+        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
+
+        final Interpolator interpolator = new LinearInterpolator();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = interpolator.getInterpolation((float) elapsed / duration);
+                double lng = t * target.longitude + (1 - t) * startLatLng.longitude;
+                double lat = t * target.latitude + (1 - t) * startLatLng.latitude;
+                marker.setPosition(new LatLng(lat, lng));
+                if (t < 1.0) {
+                    // Post again 10ms later.
+                    handler.postDelayed(this, 10);
+                } else {
+                    // animation ended
+                }
+            }
+        });
     }
 }
