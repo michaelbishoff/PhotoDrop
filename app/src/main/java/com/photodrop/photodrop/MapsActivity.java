@@ -43,6 +43,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 // TODO: Could make an object for the marker and the ID so that we can use the title and the snippet,
 // but then still need a way to check if the marker they clicked was in range or not (in constant time) in onMarkerClick()
@@ -88,6 +90,8 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
 
     public static final int PARACHUTE_WIDTH = 130;
     public static final int PARACHUTE_HEIGHT = 150;
+
+    public static final int ONE_MINUTE = 60000;
 
 
     /**
@@ -147,19 +151,6 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         return view;
     }
 
-    /**
-     * Creates a BitmapDescriptor for the specified drawable. The drawable is a parachute icon that
-     * is on the map, so they all have the same size.
-     * @param drawableId - The ID of the drawable in the R file
-     * @return a BitmapDescriptor
-     */
-    private BitmapDescriptor createBitmapDescriptor(int drawableId) {
-        BitmapDrawable bitmapDrawable = (BitmapDrawable) getResources().getDrawable(drawableId, null);
-        Bitmap bitmap = bitmapDrawable.getBitmap();
-        bitmap = Bitmap.createScaledBitmap(bitmap, PARACHUTE_WIDTH, PARACHUTE_HEIGHT, false);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
-    }
-
     @Override
     public void onPause() {
         super.onPause();
@@ -211,7 +202,9 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         // But that will cause there to be an extra object in the location services class
         // Sets the location to be the user's location, but it's not available right away because
         // location services takes a while to start, so this is always: setLocation(null)
-        setLocation(mainActivity.getLocation());
+//        setLocation(mainActivity.getLocation(), true);
+
+        startLocationUpdates();
     }
 
     /**
@@ -244,7 +237,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
      *       Google uses LatLng
      *       GeoFire uses GeoLocation
     */
-    public void setLocation(Location location) {
+    public void setLocation(Location location, boolean moveCamera) {
         if (location == null) {
             userLatLng = new LatLng(0, 0);
         } else {
@@ -298,11 +291,68 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
             maxQueryRadius.setCenter(userLatLng);
         }
 
-
-        // Zoom from 2 (furthest out) - 21 (closest zoom)
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, CAMERA_ZOOM));
+        if (moveCamera) {
+            // Zoom from 2 (furthest out) - 21 (closest zoom)
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, CAMERA_ZOOM));
+        }
     }
 
+    /**
+     * Initializes the timer to continually get the user's location and update the UI elements
+     */
+    private void startLocationUpdates() {
+        // Gets the user's activity every 2 minutes
+        final Handler handler = new Handler();
+        Timer timer = new Timer();
+        TimerTask asyncTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mainActivity != null) {
+                            // Get the current location
+                            Location location = mainActivity.getLocation();
+
+                            // Set the location on the UI if the location has changed
+                            if (location != null && (location.getLatitude() != userLatLng.latitude
+                                || location.getLongitude() != userLatLng.longitude)) {
+
+                                // Set the location of the user on the map
+                                // and update the query radii
+                                setLocation(mainActivity.getLocation(), false);
+                            }
+                        }
+                    }
+                });
+            }
+        };
+        // Get the user's location every minute
+        timer.schedule(asyncTask, 0, ONE_MINUTE);
+    }
+
+    /* Google Maps Marker Methods */
+
+    /**
+     * Creates a BitmapDescriptor for the specified drawable. The drawable is a parachute icon that
+     * is on the map, so they all have the same size.
+     * @param drawableId - The ID of the drawable in the R file
+     * @return a BitmapDescriptor
+     */
+    private BitmapDescriptor createBitmapDescriptor(int drawableId) {
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) getResources().getDrawable(drawableId, null);
+        Bitmap bitmap = bitmapDrawable.getBitmap();
+        bitmap = Bitmap.createScaledBitmap(bitmap, PARACHUTE_WIDTH, PARACHUTE_HEIGHT, false);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+    /**
+     * Toggles a marker from the viewable range to the not-viewable range and vice versa
+     * @param key
+     * @param thisHashMap
+     * @param thatHashMap
+     * @param bitmap
+     */
     public void toggleMarkerViewable(String key, HashMap<String, Marker> thisHashMap,
                                      HashMap<String, Marker> thatHashMap, BitmapDescriptor bitmap) {
 
@@ -315,6 +365,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         thatHashMap.put(key, marker);
     }
 
+
     /**
      * Defines an interface that MainActivity implements so that we can
      * receive the location data from the MainActivity.
@@ -323,6 +374,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
         Location getLocation(); // Gets the user's current location
         GeoFire getGeoFire(); // Gets the GeoFire reference to save memory
     }
+
 
     public class MaxRangeListener implements GeoQueryEventListener {
 

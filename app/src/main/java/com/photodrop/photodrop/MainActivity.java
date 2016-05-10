@@ -246,7 +246,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             locationService.resumeService();
 
             // Sets the user's location on the map
-            mapsActivity.setLocation(locationService.getUserLocation());
+            // TODO: This is redundant with MapsActivity onMapReady(), but we're not sure if
+            // the service is ready before the map or if the map is ready before the service
+            mapsActivity.setLocation(locationService.getUserLocation(), true);
         }
 
         @Override
