@@ -24,8 +24,11 @@ When a user opens the app, they are presented with a login/signup page. If the u
 
 ### Optimizations
 We store the photos that the user has taken on their device. This allows us to load the photo from storage, rather than accessing the database (Firebase), if the user would like to see a photo that they have taken. This speeds up the app significantly because photos have a large file size.  
+  
 We store whether the user has liked or flagged a photo previously in SharedPreferences so that when they open a photo, the app will indicated that they have previously liked or flagged the photo.  
+  
 The optimizations explained above (loading photos faster and indicating liked/flagged photos faster) can be achieved with database accesses, but these optimizations make the app significantly faster. If a user logs-in from another device, other than the one they took the photos on, then the photos will be loaded from the database.  
+  
 We also made the photos accessible by other photo apps. From another photo app, the user's photos will be in a Photodrop folder.
 
 ## Contributing
