@@ -1,5 +1,4 @@
 # Photo Drop
-------------------------------
 
 Drop photos at your location. View photos near you.
 
