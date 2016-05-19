@@ -117,7 +117,7 @@ public class ProfileActivity extends AppCompatActivity implements ValueEventList
                 // all of them, then get all of them if there is a difference maybe? But then
                 // that's another DB access
 
-                if (localPhotos.length == numPhotos) {
+                if (localPhotos != null && localPhotos.length == numPhotos) {
                     loadPhotosLocally(localPhotos);
 
                 } else {

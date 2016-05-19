@@ -153,7 +153,7 @@ public class ImageUtil {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         // PNG is lossless quality but 100 ensures max quality
         bitmap.compress(Bitmap.CompressFormat.JPEG, imageQuality, byteArrayOutputStream);
-        bitmap.recycle();
+//        bitmap.recycle();
         byte[] byteArray = byteArrayOutputStream.toByteArray();
 
         // Frees up some memory (i think lol)

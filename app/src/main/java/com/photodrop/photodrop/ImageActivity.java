@@ -154,7 +154,8 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
                 @Override
                 protected Bitmap doInBackground(Uri... params) {
                     Log.d("ME", "Doing in background");
-                    return ImageUtil.getBitmapFromUri(ImageActivity.this, params[0]);
+                    return ImageUtil.decodeFileAndSampleBitmap(params[0].getPath(), 700, 700);
+//                    return ImageUtil.getBitmapFromUri(ImageActivity.this, params[0]);
                 }
                 // Updates the UI on the main UI thread
                 @Override
@@ -197,9 +198,11 @@ public class ImageActivity extends AppCompatActivity implements ValueEventListen
 
             if (key.equals("image")) {
                 Log.d("ME", "Getting image from: " + dataSnapshot.getRef().getPath());
+                Bitmap bitmap = ImageUtil.getBitmapFromEncodedImage(
+                        (String) dataSnapshot.getValue());
+
                 // Sets the image
-                imageView.setImageBitmap(ImageUtil.getBitmapFromEncodedImage(
-                        (String) dataSnapshot.getValue()));
+                imageView.setImageBitmap(bitmap);
 
                 // Hides the progress bar
                 showProgress(false);

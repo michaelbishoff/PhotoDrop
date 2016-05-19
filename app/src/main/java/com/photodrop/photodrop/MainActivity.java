@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // UI Buttons
     private ImageButton profileButton, cameraButton, settingsButton;
     private static final int CAMERA_REQUEST = 1000;
-    private static final int IMAGE_QUALITY = 100;
+    private static final int IMAGE_QUALITY = 50;
 
     // Firebase Objects
     public Firebase images, userPhotos;

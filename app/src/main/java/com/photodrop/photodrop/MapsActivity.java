@@ -625,7 +625,7 @@ public class MapsActivity extends SupportMapFragment implements OnMapReadyCallba
                     if (numLikes > NUM_LIKES_YELLOW) {
                         marker.setIcon(parachuteYellow);
                     }
-                    if (numLikes > NUM_LIKES_ORANGE) {
+                    else if (numLikes > NUM_LIKES_ORANGE) {
                         marker.setIcon(parachuteOrange);
                     }
                 }
